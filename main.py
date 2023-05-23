@@ -34,7 +34,7 @@ def run_test(test):
         ]
         write_csv_file(file_path, data)
     di = set_initial_deadlines(data, 1.5)
-    print("|--------Running " + test + " -----------------------|")
+    print("|--------Running " + test + " ---------------------------------------------------------------------|")
     print_csv_file_data(data)
 
     # Solve the scheduling problem using brute-force enumeration
@@ -51,7 +51,7 @@ def run_test(test):
     print_schedule(schedule)
     print("Makespan:", makespan)
 
-    print("--------End of " + test + " -----------------------")
+    print("--------End of " + test + " ---------------------------------------------------------------------")
     print()
 
 

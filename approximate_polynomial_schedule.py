@@ -50,6 +50,7 @@ def approximate_schedule(pij, di):
     # ensures that each job is assigned to exactly one machine. The lpSum function calculates the sum of the decision
     # variables jobs_assigned[i][j] for all machines i, and it should be equal to 1.
     jobs_assigned = [[LpVariable(f"x{i}{j}", cat="Binary") for j in range(n)] for i in range(m)]
+
     # Each job can be assigned to one machine
     for j in range(n):
         lp_problem += lpSum(jobs_assigned[i][j] for i in range(m)) == 1
@@ -61,6 +62,7 @@ def approximate_schedule(pij, di):
     # This sum represents the total processing time on machine i. The constraint <= di[i] ensures that the total
     # processing time on machine i is less than or equal to its corresponding deadline di[i].
     # It guarantees that the machine completes its assigned jobs within the given deadline.
+
     # Meet the deadline
     for i in range(m):
         lp_problem += lpSum(pij[i][j] * jobs_assigned[i][j] for j in range(n)) <= di[i]
@@ -70,10 +72,11 @@ def approximate_schedule(pij, di):
     # of the decision variable jobs_assigned[i][j] to be at most 1, indicating that at most one job is assigned to
     # machine i at any given time.
     # Add the constraints to
+
     # ensure each machine processes only one job at a time
-    for i in range(m):
-        for j in range(n):
-            lp_problem += jobs_assigned[i][j] <= 1
+    # for i in range(m):
+    #     for j in range(n):
+    #         lp_problem += jobs_assigned[i][j] <= 1
     # In summary, the constraints in step 3 enforce the proper assignment of jobs to machines, ensure that processing
     # times meet the deadlines, and restrict each machine to process only one job at a time.
 
@@ -82,7 +85,7 @@ def approximate_schedule(pij, di):
 
     # Step 5: Handle infeasible solution by iteratively increasing the deadlines
     while LpStatus[lp_problem.status] == "Infeasible":
-        # Increase the deadlines for all machines by a certain factor (e.g., 10%)
+        # Increase the deadlines for all machines by a certain factor
         di = [d * 1.1 for d in di]
 
         # Clear the existing constraints
@@ -93,9 +96,9 @@ def approximate_schedule(pij, di):
             lp_problem += lpSum(jobs_assigned[i][j] for i in range(m)) == 1
         for i in range(m):
             lp_problem += lpSum(pij[i][j] * jobs_assigned[i][j] for j in range(n)) <= di[i]
-        for i in range(m):
-            for j in range(n):
-                lp_problem += jobs_assigned[i][j] <= 1
+        # for i in range(m):
+        #     for j in range(n):
+        #         lp_problem += jobs_assigned[i][j] <= 1
 
         # Solve the LP relaxation again
         lp_problem.solve()
