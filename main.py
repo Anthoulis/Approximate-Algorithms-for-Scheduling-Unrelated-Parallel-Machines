@@ -1,28 +1,7 @@
-import os
-
 from CSV_functions import *
+from LP import *
+from IP import *
 from Procedure import *
-
-
-def print_job_assignments(P, x):
-    m = len(P)
-    n = len(P[0])
-
-    # Create a dictionary to store the job assignments for each machine
-    machine_assignments = {}
-
-    # Iterate over the decision variables and store the job assignments
-    for key, var in x.items():
-        machine, job = key
-        if var.varValue == 1:
-            if machine in machine_assignments:
-                machine_assignments[machine].append(f"Job{job}")
-            else:
-                machine_assignments[machine] = [f"Job{job}"]
-
-    # Print the job assignments for each machine
-    for machine, assignments in machine_assignments.items():
-        print(f"Machine {machine}:", assignments)
 
 
 def run_test(test):
@@ -39,34 +18,32 @@ def run_test(test):
     P = data
     m = len(data)  # number of machines
     n = len(data[0])  # number of jobs
-
     t = greedy_schedule(P)
-    # Calculate the initial upper and lower bounds
-    # upper_bound = t
-    # lower_bound = t // m
-
-    # Run the binary search procedure
-    # best_solution = binary_search_loop(P, t, lower_bound, upper_bound)
-    # best_solution = binary_search_recursion(P, t, lower_bound, upper_bound, None)
-
-    solution = binary_search_procedure(P)
-
+    lp_solution, deadline = binary_search_procedure(P)
     ###############################################################################################
     print('|-----', test, '----------------------------------------')
     # Our data
     print('Pij:', m, 'machines x', n, ' jobs')
     for row in data:
         print(*row)
-
+    print()
     # Greedy Makespan
-    print("Greedy makespan ", t)
+    print("Calculated Greedy makespan t->", t)
+    print("Using Procedure calculate Deadline d->", deadline)
+    print()
 
-    if solution is not None:
-        makespan, schedule = solution[0], solution[1]
-        print("Best Solution:")
-        print("Makespan:", makespan)
-        print("Schedule:")
-        print_x_decision(P, schedule)
+    if lp_solution is not None:
+        # LP
+        print_LP(P, lp_solution)
+
+        # Rounded LP
+        print()
+        print_LP_rounded(P, lp_solution[1])
+
+        # IP
+        di = [deadline] * m
+        ip_solution = IP(P, di, t)
+        print_IP(P, ip_solution)
     else:
         print("No feasible solution found.")
     print('|--- End of ', test, '-----------------------------------------------------------|')

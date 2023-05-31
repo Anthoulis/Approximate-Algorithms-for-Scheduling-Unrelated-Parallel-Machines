@@ -54,7 +54,6 @@ def LP(Pij, di, t):
             completion_time += Pij[i][j] * x[i, j]
         lp_prob += completion_time <= Cmax  # Constraint: Cmax is the maximum completion time among all the jobs
 
-
     # Solve the problem
     lp_prob.solve(PULP_CBC_CMD(msg=0))
 
@@ -68,6 +67,7 @@ def LP(Pij, di, t):
 
 # #####  ---  End of LP  ---   ########################################################################################
 
+# Print x[i,j]
 def print_x_decision(P, x):
     m = len(P)
     n = len(P[0])
@@ -78,6 +78,39 @@ def print_x_decision(P, x):
         print("Machine", i, ":", row)
 
 
+def print_LP(Pij, solution):
+    print('-- LP --')
+    print('Makespan ', solution[0])
+    print('LP decisions xij')
+    print_x_decision(Pij, solution[1])
+
+
+def print_LP_rounded(Pij, x):
+    print("-- LP Rounded --")
+    m = len(Pij)  # Number of machines
+    n = len(Pij[0])  # Number of jobs
+
+    max_job_width = len(f"Job{n - 1}")  # Determine the maximum width of job names
+
+    completion_times = [0] * m  # Initialize completion times for each machine
+
+    for i in range(m):
+        assigned_jobs = []
+        for j in range(n):
+            if round(x[i, j].varValue) == 1:  # Round the value and check if it is equal to 1
+                job_name = f"Job{j}"
+                padded_job_name = job_name.ljust(max_job_width)  # Pad the job name with spaces
+                assigned_jobs.append(padded_job_name)
+                completion_times[i] += Pij[i][j]  # Accumulate the processing time for assigned jobs
+        print(f"Machine {i}: [{', '.join(assigned_jobs)}]")
+
+    makespan = max(completion_times)  # Calculate the new makespan
+
+    print(f"\nLP Rounded Makespan: {makespan}")
+    print()
+
+
+# #######################    Testing #################################################################################
 def calculate_makespan(P, x):
     machines = len(P)
     jobs = len(P[0])
@@ -119,12 +152,11 @@ def testLP():
     if result is None:
         print("No feasible solution found.")
     else:
-        makespan, job_assignments = result
-        print("Minimum Makespan:", makespan)
-        makespan = calculate_makespan(Pij, job_assignments)
-        print("Def Makespan:", makespan)
+        makespan, x = result
+        print("LP Makespan:", makespan)
+        print('Calculate Makespan for verification , calculate makespan = ', calculate_makespan(Pij, x))
         print("Job Assignments:")
-        print_x_decision(Pij, job_assignments)
+        print_x_decision(Pij, x)
 
 
 if __name__ == "__main__":

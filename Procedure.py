@@ -46,7 +46,7 @@ def binary_search_procedure(P):
     lower_bound = t // m
 
     best_solution = None
-
+    best_d = None
     while upper_bound - lower_bound > 1:
         d = (upper_bound + lower_bound) // 2
         solution = two_relaxed_decision_procedure(P, d)
@@ -54,10 +54,11 @@ def binary_search_procedure(P):
             upper_bound = d
             if best_solution is None or solution[0] < best_solution[0]:
                 best_solution = solution
+                best_d = d
         else:
             lower_bound = d + 1
 
-    return best_solution
+    return best_solution, best_d
 
 
 def testProcedure():
