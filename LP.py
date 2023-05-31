@@ -1,0 +1,131 @@
+from pulp import *
+
+
+def LP(Pij, di, t):
+    """
+    Solves the scheduling problem using linear programming.
+
+    Parameters:
+    - Pij: a 2D array representing the processing times of jobs on machines.
+    - di: a list of machine deadlines.
+    - t: the maximum time units allowed for Ji(t) and Mj(t) sets.
+
+    Returns:
+    - objective_value: the minimum makespan achieved.
+    - x: the decision variables representing the job assignments to machines.
+    """
+
+    m = len(Pij)  # Number of machines
+    n = len(Pij[0])  # Number of jobs
+
+    # Define the variables, objective function, and problem
+    lp_prob = LpProblem("LP", LpMinimize)
+
+    # Decision variables
+    x = LpVariable.dicts("x", [(i, j) for i in range(m) for j in range(n)], lowBound=0, upBound=1, cat='Continuous')
+
+    # The objective function is to minimize the makespan, which is the maximum completion time among
+    # all the jobs on the machines.
+    Cmax = LpVariable("Cmax", lowBound=0, cat="Continuous")
+    lp_prob += Cmax
+
+    # Constraints
+
+    # Each job can be assigned to one machine
+    for j in range(n):
+        Mj_t = []  # Contains machines that can process job j in no more than t time units
+        for i in range(m):
+            if Pij[i][j] <= t:
+                Mj_t.append(i)
+        lp_prob += lpSum(x[i, j] for i in Mj_t) == 1  # Constraint: Each job can be assigned to one machine
+
+    # Meet the deadline
+    for i in range(m):
+        Ji_t = []  # Contains jobs that require no more than t time units on machine i.
+        for j in range(n):
+            if Pij[i][j] <= t:
+                Ji_t.append(j)
+        lp_prob += lpSum(Pij[i][j] * x[i, j] for j in Ji_t) <= di[i]  # Constraint: Meet the machine deadline
+
+    # Calculate the makespan
+    for i in range(m):
+        completion_time = 0
+        for j in range(n):
+            completion_time += Pij[i][j] * x[i, j]
+        lp_prob += completion_time <= Cmax  # Constraint: Cmax is the maximum completion time among all the jobs
+
+
+    # Solve the problem
+    lp_prob.solve(PULP_CBC_CMD(msg=0))
+
+    # If the problem is not feasible, return None
+    if lp_prob.status != 1:
+        return None
+
+    makespan = value(Cmax)
+    return makespan, x
+
+
+# #####  ---  End of LP  ---   ########################################################################################
+
+def print_x_decision(P, x):
+    m = len(P)
+    n = len(P[0])
+    for i in range(m):
+        row = []
+        for j in range(n):
+            row.append(x[i, j].varValue)
+        print("Machine", i, ":", row)
+
+
+def calculate_makespan(P, x):
+    machines = len(P)
+    jobs = len(P[0])
+    completion_times = [0] * machines  # Initialize completion times for each machine
+
+    # Calculate completion times for each machine
+    for i in range(machines):
+        for j in range(jobs):
+            completion_times[i] += x[i, j].varValue * P[i][j]  # Add the processing time of the job if assigned to
+            # the machine
+
+    # Find the maximum completion time as the makespan
+    makespan = max(completion_times)
+    return makespan
+
+
+def testLP():
+    print('Testing LP.py')
+    # Example input data
+    Pij = [
+        [3, 4, 2, 5, 2, 3, 4, 5, 3, 2, 4, 3, 2, 4, 3, 5, 4, 2, 3, 2, 4, 3, 5, 4, 2, 3, 2, 4, 3, 4],
+        [2, 5, 1, 3, 2, 4, 3, 5, 1, 2, 3, 4, 2, 1, 5, 4, 3, 2, 4, 3, 1, 2, 3, 4, 2, 5, 1, 3, 2, 4],
+        [4, 3, 2, 1, 5, 4, 2, 3, 1, 2, 3, 4, 2, 1, 5, 4, 3, 2, 4, 3, 1, 2, 3, 4, 2, 5, 1, 3, 2, 4],
+        [1, 5, 4, 2, 3, 2, 4, 3, 5, 4, 2, 3, 2, 4, 3, 5, 4, 2, 3, 2, 4, 3, 5, 4, 2, 3, 2, 4, 3, 5],
+        [2, 3, 1, 5, 4, 2, 3, 1, 2, 3, 4, 2, 1, 5, 4, 3, 2, 4, 3, 1, 2, 3, 4, 2, 5, 1, 3, 2, 4, 3],
+        [3, 4, 2, 5, 2, 3, 4, 5, 3, 2, 4, 3, 2, 4, 3, 5, 4, 2, 3, 2, 4, 3, 5, 4, 2, 3, 2, 4, 3, 5],
+        [4, 3, 2, 1, 5, 4, 2, 3, 1, 2, 3, 4, 2, 1, 5, 4, 3, 2, 4, 3, 1, 2, 3, 4, 2, 5, 1, 3, 2, 4],
+        [1, 5, 4, 2, 3, 2, 4, 3, 5, 4, 2, 3, 2, 4, 3, 5, 4, 2, 3, 2, 4, 3, 5, 4, 2, 3, 2, 4, 3, 5],
+        [2, 3, 1, 5, 4, 2, 3, 1, 2, 3, 4, 2, 1, 5, 4, 3, 2, 4, 3, 1, 2, 3, 4, 2, 5, 1, 3, 2, 4, 3],
+        [3, 4, 2, 5, 2, 3, 4, 5, 3, 2, 4, 3, 2, 4, 3, 5, 4, 2, 3, 2, 4, 3, 5, 4, 2, 3, 2, 4, 3, 5]
+    ]
+    di = [15, 10, 12, 13, 11, 14, 9, 16, 10, 12]
+    t = 10
+    m = len(Pij)
+    n = len(Pij[0])
+    # Call LP function to solve the scheduling problem
+    result = LP(Pij, di, t)
+
+    if result is None:
+        print("No feasible solution found.")
+    else:
+        makespan, job_assignments = result
+        print("Minimum Makespan:", makespan)
+        makespan = calculate_makespan(Pij, job_assignments)
+        print("Def Makespan:", makespan)
+        print("Job Assignments:")
+        print_x_decision(Pij, job_assignments)
+
+
+if __name__ == "__main__":
+    testLP()

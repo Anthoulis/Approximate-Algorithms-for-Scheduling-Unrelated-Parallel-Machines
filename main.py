@@ -1,23 +1,28 @@
 import os
 
-from approximate_polynomial_schedule import approximate_schedule
-from brute_force import brute_force_scheduling
-from csv_functions import *
+from CSV_functions import *
+from Procedure import *
 
 
-def print_schedule(schedule):
-    """
-    Print the schedule in a clear format.
-    Args: schedule (list): The schedule as a 2D array, where each row represents a machine and contains the scheduled
-    jobs.
-    """
-    num_machines = len(schedule)
-    num_jobs = len(schedule[0])
-    print("Schedule:")
-    for i in range(num_machines):
-        machine_jobs = [str(j) for j in range(num_jobs) if schedule[i][j] == 1]
-        job_sequence = ', '.join(machine_jobs)
-        print(f"Machine {i}: Jobs [{job_sequence}]")
+def print_job_assignments(P, x):
+    m = len(P)
+    n = len(P[0])
+
+    # Create a dictionary to store the job assignments for each machine
+    machine_assignments = {}
+
+    # Iterate over the decision variables and store the job assignments
+    for key, var in x.items():
+        machine, job = key
+        if var.varValue == 1:
+            if machine in machine_assignments:
+                machine_assignments[machine].append(f"Job{job}")
+            else:
+                machine_assignments[machine] = [f"Job{job}"]
+
+    # Print the job assignments for each machine
+    for machine, assignments in machine_assignments.items():
+        print(f"Machine {machine}:", assignments)
 
 
 def run_test(test):
@@ -28,34 +33,45 @@ def run_test(test):
         data = read_csv_file(file_path)
     else:
         # Create a new CSV file
-        data = [
-            [10, 20, 15, 40, 8],
-            [20, 30, 10, 25, 18]
-        ]
+        data = [[2, 4, 3, 2], [3, 1, 6, 2], [1, 3, 2, 5]]
         write_csv_file(file_path, data)
-    di = set_initial_deadlines(data, 1.5)
-    print("|--------Running " + test + " ---------------------------------------------------------------------|")
-    print_csv_file_data(data)
 
-    # Solve the scheduling problem using brute-force enumeration
-    best_schedule, best_makespan = brute_force_scheduling(data)
+    P = data
+    m = len(data)  # number of machines
+    n = len(data[0])  # number of jobs
 
-    # Brute Force -------------------------------------
-    print("---Brute Force---:")
-    print_schedule(best_schedule)  # Assuming you have the print_schedule function defined
-    print("Makespan:", best_makespan)
+    t = greedy_schedule(P)
+    # Calculate the initial upper and lower bounds
+    # upper_bound = t
+    # lower_bound = t // m
 
-    # Approximate Polynomial --------------------------------------
-    schedule, makespan = approximate_schedule(data, di)
-    print("---Approximate---")
-    print_schedule(schedule)
-    print("Makespan:", makespan)
+    # Run the binary search procedure
+    # best_solution = binary_search_loop(P, t, lower_bound, upper_bound)
+    # best_solution = binary_search_recursion(P, t, lower_bound, upper_bound, None)
 
-    print("--------End of " + test + " ---------------------------------------------------------------------")
-    print()
+    solution = binary_search_procedure(P)
+
+    ###############################################################################################
+    print('|-----', test, '----------------------------------------')
+    # Our data
+    print('Pij:', m, 'machines x', n, ' jobs')
+    for row in data:
+        print(*row)
+
+    # Greedy Makespan
+    print("Greedy makespan ", t)
+
+    if solution is not None:
+        makespan, schedule = solution[0], solution[1]
+        print("Best Solution:")
+        print("Makespan:", makespan)
+        print("Schedule:")
+        print_x_decision(P, schedule)
+    else:
+        print("No feasible solution found.")
+    print('|--- End of ', test, '-----------------------------------------------------------|')
 
 
 # Execute the main function
 if __name__ == "__main__":
     run_test('data.csv')
-    run_test('test1.csv')

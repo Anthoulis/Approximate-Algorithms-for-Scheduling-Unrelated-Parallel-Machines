@@ -48,4 +48,4 @@ def brute_force_scheduling(processing_times):
             best_schedule = schedule
             best_makespan = makespan
 
-    return best_schedule, best_makespan
+    return best_makespan, best_schedule
