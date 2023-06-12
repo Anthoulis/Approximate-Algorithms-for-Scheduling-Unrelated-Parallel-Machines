@@ -61,6 +61,8 @@ def binary_search_procedure(P):
     return best_solution, best_d
 
 
+# TODO: Create the rounding method with the Graphs
+
 def testProcedure():
     print('Testing Procedure.py')
 

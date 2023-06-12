@@ -1,6 +1,16 @@
 from pulp import *
 
 
+# TODO: Create def where given a decision x[i,j] returns a m x n 2D array.
+def create_assignment_array(x, m, n):
+    assignment_array = [[0] * n for _ in range(m)]
+    for i in range(m):
+        for j in range(n):
+            if (i, j) in x:
+                assignment_array[i][j] = x[(i, j)].varValue
+    return assignment_array
+
+
 def LP(Pij, di, t):
     """
     Solves the scheduling problem using linear programming.
@@ -21,7 +31,8 @@ def LP(Pij, di, t):
     # Define the variables, objective function, and problem
     lp_prob = LpProblem("LP", LpMinimize)
 
-    # Decision variables
+    # TODO: Create xij decision variables only for Mj(t)
+    #  Where Mj(t) is the set of machines that can process job j in no more than t time units.
     x = LpVariable.dicts("x", [(i, j) for i in range(m) for j in range(n)], lowBound=0, upBound=1, cat='Continuous')
 
     # The objective function is to minimize the makespan, which is the maximum completion time among
@@ -157,6 +168,11 @@ def testLP():
         print('Calculate Makespan for verification , calculate makespan = ', calculate_makespan(Pij, x))
         print("Job Assignments:")
         print_x_decision(Pij, x)
+        print()
+        print()
+        xarray = create_assignment_array(x, m, n)
+        for row in xarray:
+            print(row)
 
 
 if __name__ == "__main__":

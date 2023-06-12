@@ -1,6 +1,7 @@
 from pulp import *
 
 
+# TODO: Modify like LP
 def IP(Pij, di, t):
     m = len(Pij)  # Number of machines
     n = len(Pij[0])  # Number of jobs
