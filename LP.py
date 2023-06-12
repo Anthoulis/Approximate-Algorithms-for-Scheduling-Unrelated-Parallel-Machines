@@ -1,14 +1,69 @@
 from pulp import *
 
 
-# TODO: Create def where given a decision x[i,j] returns a m x n 2D array.
-def create_assignment_array(x, m, n):
+def convert_decision_to_array(xij, m, n):
+    """
+    Converts the decision variables dictionary to a 2D array representation.
+
+    Parameters:
+    - xij: the decision variables representing the job assignments to machines.
+    - m: the number of machines.
+    - n: the number of jobs.
+
+    Returns:
+    - assignment_array: a 2D array with values indicating the job assignments to machines.
+    """
     assignment_array = [[0] * n for _ in range(m)]
     for i in range(m):
         for j in range(n):
-            if (i, j) in x:
-                assignment_array[i][j] = x[(i, j)].varValue
+            if (i, j) in xij:
+                assignment_array[i][j] = xij[(i, j)].varValue
     return assignment_array
+
+
+def round_decision(decision):
+    rounded_xij = {}
+    for key, xij_value in decision.items():
+        if isinstance(xij_value, LpVariable):
+            rounded_xij[key] = round(xij_value.varValue)
+        else:
+            rounded_xij[key] = round(xij_value)
+    return rounded_xij
+
+
+def print_decision_array(xij, m, n):
+    """
+    Prints the decision variable array representation.
+
+    Parameters:
+    - xij: the decision variables representing the job assignments to machines.
+    - m: the number of machines.
+    - n: the number of jobs.
+    """
+    x_array = convert_decision_to_array(xij, m, n)
+    for row in x_array:
+        print(row)
+
+
+def print_schedule(xij, m, n):
+    """
+    Prints the schedule of job assignments to machines.
+
+    Parameters:
+    - xij: the decision variables representing the job assignments to machines.
+    - m: the number of machines.
+    - n: the number of jobs.
+    """
+    x = convert_decision_to_array(xij, m, n)
+    max_job_width = len(f"Job{n - 1}")  # Determine the maximum width of job names
+    for i in range(m):
+        assigned_jobs = []
+        for j in range(n):
+            if round(x[i][j]) == 1:
+                job_name = f"Job{j}"
+                padded_job_name = job_name.ljust(max_job_width)
+                assigned_jobs.append(padded_job_name)
+        print(f"Machine {i}: [ {', '.join(assigned_jobs)} ]")
 
 
 def LP(Pij, di, t):
@@ -24,7 +79,6 @@ def LP(Pij, di, t):
     - objective_value: the minimum makespan achieved.
     - x: the decision variables representing the job assignments to machines.
     """
-
     m = len(Pij)  # Number of machines
     n = len(Pij[0])  # Number of jobs
 
@@ -41,7 +95,6 @@ def LP(Pij, di, t):
     lp_prob += Cmax
 
     # Constraints
-
     # Each job can be assigned to one machine
     for j in range(n):
         Mj_t = []  # Contains machines that can process job j in no more than t time units
@@ -78,59 +131,17 @@ def LP(Pij, di, t):
 
 # #####  ---  End of LP  ---   ########################################################################################
 
-# Print x[i,j]
-def print_x_decision(P, x):
-    m = len(P)
-    n = len(P[0])
-    for i in range(m):
-        row = []
-        for j in range(n):
-            row.append(x[i, j].varValue)
-        print("Machine", i, ":", row)
+# #######################    Testing #################################################################################
 
-
-def print_LP(Pij, solution):
-    print('-- LP --')
-    print('Makespan ', solution[0])
-    print('LP decisions xij')
-    print_x_decision(Pij, solution[1])
-
-
-def print_LP_rounded(Pij, x):
-    print("-- LP Rounded --")
-    m = len(Pij)  # Number of machines
-    n = len(Pij[0])  # Number of jobs
-
-    max_job_width = len(f"Job{n - 1}")  # Determine the maximum width of job names
-
+def calculate_makespan(P, x_array):
+    m = len(x_array)
+    n = len(x_array)
     completion_times = [0] * m  # Initialize completion times for each machine
 
-    for i in range(m):
-        assigned_jobs = []
-        for j in range(n):
-            if round(x[i, j].varValue) == 1:  # Round the value and check if it is equal to 1
-                job_name = f"Job{j}"
-                padded_job_name = job_name.ljust(max_job_width)  # Pad the job name with spaces
-                assigned_jobs.append(padded_job_name)
-                completion_times[i] += Pij[i][j]  # Accumulate the processing time for assigned jobs
-        print(f"Machine {i}: [{', '.join(assigned_jobs)}]")
-
-    makespan = max(completion_times)  # Calculate the new makespan
-
-    print(f"\nLP Rounded Makespan: {makespan}")
-    print()
-
-
-# #######################    Testing #################################################################################
-def calculate_makespan(P, x):
-    machines = len(P)
-    jobs = len(P[0])
-    completion_times = [0] * machines  # Initialize completion times for each machine
-
     # Calculate completion times for each machine
-    for i in range(machines):
-        for j in range(jobs):
-            completion_times[i] += x[i, j].varValue * P[i][j]  # Add the processing time of the job if assigned to
+    for i in range(m):
+        for j in range(n):
+            completion_times[i] += x_array[i][j] * P[i][j]  # Add the processing time of the job if assigned to
             # the machine
 
     # Find the maximum completion time as the makespan
@@ -139,7 +150,10 @@ def calculate_makespan(P, x):
 
 
 def testLP():
-    print('Testing LP.py')
+    """
+    Tests the LP.py module by solving a scheduling problem instance.
+    """
+    print('----------   Testing LP.py   --------------------')
     # Example input data
     Pij = [
         [3, 4, 2, 5, 2, 3, 4, 5, 3, 2, 4, 3, 2, 4, 3, 5, 4, 2, 3, 2, 4, 3, 5, 4, 2, 3, 2, 4, 3, 4],
@@ -160,20 +174,27 @@ def testLP():
     # Call LP function to solve the scheduling problem
     result = LP(Pij, di, t)
 
-    if result is None:
-        print("No feasible solution found.")
-    else:
+    if result is not None:
         makespan, x = result
-        print("LP Makespan:", makespan)
-        print('Calculate Makespan for verification , calculate makespan = ', calculate_makespan(Pij, x))
-        print("Job Assignments:")
-        print_x_decision(Pij, x)
-        print()
-        print()
-        xarray = create_assignment_array(x, m, n)
-        for row in xarray:
-            print(row)
+        print("Objective value (makespan):", makespan)
+        print("Job assignments to machines:")
+        print_schedule(x, m, n)
+        print("Completion times:")
+        print_decision_array(x, m, n)
+    else:
+        print("No feasible solution found.")
+
+    # Calculate makespan using the LP solution
+    if result is not None:
+        _, x = result
+        calculated_makespan = calculate_makespan(Pij, x)
+        print("Calculated makespan:", calculated_makespan)
+    else:
+        print("Cannot calculate makespan as no feasible solution found.")
+
+    print('----------   End of Testing LP.py   -------------')
 
 
+# Run the test function
 if __name__ == "__main__":
     testLP()

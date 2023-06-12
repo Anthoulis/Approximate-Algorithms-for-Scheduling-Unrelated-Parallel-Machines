@@ -1,6 +1,6 @@
 import numpy as np
 
-from LP import LP, print_x_decision
+from LP import *
 
 
 def greedy_schedule(P):
@@ -88,7 +88,6 @@ def testProcedure():
         objective_value, decision_vars = solution
         print("Optimal Objective Value:", objective_value)
         print("Decision Variables:")
-        print_x_decision(Pij, decision_vars)
     else:
         print("No feasible solution found.")
 
