@@ -1,19 +1,26 @@
 import numpy as np
+from linear_programming import *
 
-from LP import *
+"""
+Step1 : Calculate t which is the greedy makespan
+Step2 : Set upper and lower bound using t , upper_bound = t and lower_bound = t//m where m is number of machines
+Step3 : Create a linear problem LP(P,d⃗,t)
+Let P=(p!/)6Z+ , d=(d~,...,dm)cZ+ and
+t 6 Z+. If the linear program LP(P, d, t), given by
+Step3 : Create a decision_procedure LP(P,d) using the LP(P,d⃗,t) of the rounding theorem 
+        where d = d1 = d2 = .. = dm = t = d
+Step4 : While upper - lower > 1 use decision_procedure and search the deadline that gives the minimum makespan
+"""
 
 
 def greedy_schedule(P):
     """
     Computes the makespan of a schedule by assigning each job to the machine with the minimum processing time.
-
     Args:
         P (numpy.ndarray): 2D array representing the processing times of jobs on different machines.
                            Shape: (m, n), where m is the number of machines and n is the number of jobs.
-
     Returns:
         int: The makespan of the schedule, i.e., the maximum load among all machines.
-
     """
     P = np.array(P)  # Convert P to a NumPy array
     m = len(P)  # Number of machines
@@ -30,7 +37,7 @@ def greedy_schedule(P):
 
 
 def two_relaxed_decision_procedure(P, d):
-    # d1 = .... dm = t = d
+    # d1 = d2 = .... dm = t = d
     di = [d] * len(P)
     solution = LP(P, di, d)
     if solution is not None:
