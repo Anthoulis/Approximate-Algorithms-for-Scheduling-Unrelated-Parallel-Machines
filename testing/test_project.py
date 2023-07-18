@@ -1,6 +1,6 @@
-from CSV_functions import *
 from IP import *
 from Procedure import *
+from generate_data import *
 
 
 def run_test(test):

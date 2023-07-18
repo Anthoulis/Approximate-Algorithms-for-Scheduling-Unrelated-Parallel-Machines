@@ -32,8 +32,8 @@ def run_main(filename_data):
         # Solution
         print("Solution ")
         # TODO: round lp_solution
-        # lp_solution_rounded = graph_rounding(lp_solution)
-        # print_schedule(P,lp_solution_grounded[1])
+        lp_solution_rounded = round_lp_solution(lp_solution)
+        print_schedule(P, lp_solution_rounded[1])
 
         # IP
         print("IP Solution")

@@ -1,15 +1,27 @@
 import numpy as np
+
+from Graph import *
 from linear_programming import *
 
 """
 Step1 : Calculate t which is the greedy makespan
-Step2 : Set upper and lower bound using t , upper_bound = t and lower_bound = t//m where m is number of machines
-Step3 : Create a linear problem LP(P,d⃗,t)
-Let P=(p!/)6Z+ , d=(d~,...,dm)cZ+ and
-t 6 Z+. If the linear program LP(P, d, t), given by
-Step3 : Create a decision_procedure LP(P,d) using the LP(P,d⃗,t) of the rounding theorem 
-        where d = d1 = d2 = .. = dm = t = d
-Step4 : While upper - lower > 1 use decision_procedure and search the deadline that gives the minimum makespan
+
+Step2 : Set upper u and lower l bound using t , upper_bound = t and lower_bound = t//m where m is number of machines
+
+Step3 : Create a linear problem LP(P,d⃗,t) where 
+    P = 2D array m machines and n jobs. Pij the process time of machine i to execute job j.
+    d⃗ = ( d1,...,dm ) ∈ Z .  deadline
+    t ∈ Z
+    Constrains:
+    i ∈ Mj(t)_Sum ( xij = 1 ) for j=1,...,n
+    j ∈ Ji(t)_Sum ( pij*xij <= di ) for i=1,...,m
+    xij>=0 for j ∈ Ji(t),  i=1,...,m
+
+Step4 : Create a decision_procedure LP(P,d) using the LP(P,d⃗,t) of the rounding theorem 
+        where d = d1 = d2 = .. = dm = t = d that returns solution if feasible and if not returns none.
+        
+Step5 : While upper - lower > 1 use decision_procedure and search the deadline that gives the minimum makespan
+        Return best_solution and the deadline for that solution.
 """
 
 
@@ -69,35 +81,57 @@ def binary_search_procedure(P):
 
 
 # TODO: Create the rounding method with the Graphs
+def create_matching(tree_edges, cycle_edges, unmatched_job_nodes):
+    matching = {}
 
-def testProcedure():
-    print('Testing Procedure.py')
+    for edge in tree_edges:
+        machine, job = edge
+        matching[(machine, job)] = 1
+        unmatched_job_nodes.discard(job)
 
-    # Example input data
-    Pij = [
-        [3, 4, 2, 5, 2, 3, 4, 5, 3, 2, 4, 3, 2, 4, 3, 5, 4, 2, 3, 2, 4, 3, 5, 4, 2, 3, 2, 4, 3, 4],
-        [2, 5, 1, 3, 2, 4, 3, 5, 1, 2, 3, 4, 2, 1, 5, 4, 3, 2, 4, 3, 1, 2, 3, 4, 2, 5, 1, 3, 2, 4],
-        [4, 3, 2, 1, 5, 4, 2, 3, 1, 2, 3, 4, 2, 1, 5, 4, 3, 2, 4, 3, 1, 2, 3, 4, 2, 5, 1, 3, 2, 4],
-        [1, 5, 4, 2, 3, 2, 4, 3, 5, 4, 2, 3, 2, 4, 3, 5, 4, 2, 3, 2, 4, 3, 5, 4, 2, 3, 2, 4, 3, 5],
-        [2, 3, 1, 5, 4, 2, 3, 1, 2, 3, 4, 2, 1, 5, 4, 3, 2, 4, 3, 1, 2, 3, 4, 2, 5, 1, 3, 2, 4, 3],
-        [3, 4, 2, 5, 2, 3, 4, 5, 3, 2, 4, 3, 2, 4, 3, 5, 4, 2, 3, 2, 4, 3, 5, 4, 2, 3, 2, 4, 3, 5],
-        [4, 3, 2, 1, 5, 4, 2, 3, 1, 2, 3, 4, 2, 1, 5, 4, 3, 2, 4, 3, 1, 2, 3, 4, 2, 5, 1, 3, 2, 4],
-        [1, 5, 4, 2, 3, 2, 4, 3, 5, 4, 2, 3, 2, 4, 3, 5, 4, 2, 3, 2, 4, 3, 5, 4, 2, 3, 2, 4, 3, 5]
-    ]
+    for edge in cycle_edges:
+        machine, job = edge
+        if job in unmatched_job_nodes:
+            matching[(machine, job)] = 1
+            unmatched_job_nodes.remove(job)
 
-    # Test greedy_schedule
-    makespan = greedy_schedule(Pij)
-    print("Makespan (Greedy Schedule):", makespan)
-
-    # Test binary_search_procedure
-    solution = binary_search_procedure(Pij)
-    if solution is not None:
-        objective_value, decision_vars = solution
-        print("Optimal Objective Value:", objective_value)
-        print("Decision Variables:")
-    else:
-        print("No feasible solution found.")
+    return matching
 
 
-if __name__ == "__main__":
-    testProcedure()
+def round_lp_solution(lp_solution):
+    lp_solution_xij = lp_solution[1]  # Extract the LP solution dictionary
+    graph = Graph(lp_solution_xij)  # Create an instance of the Graph class using the LP solution dictionary
+
+    components = graph.get_connected_components()  # Identify the connected components of the graph
+    if not graph.is_pseudoforest():  # Check if the graph is a pseudoforest
+        raise ValueError("Graph is not a pseudoforest.")
+
+    rounded_solution = {}  # Initialize the rounded solution dictionary
+    matched_job_nodes = set()  # Track the job nodes that have been matched
+
+    for component in components:
+        tree_edges = []  # Edges belonging to a tree
+        cycle_edges = []  # Edges belonging to a cycle
+        unmatched_job_nodes = set()  # Unmatched job nodes within the component
+
+        for edge in component:
+            machine, job = edge
+            if lp_solution_xij[edge].varValue == 1:
+                rounded_solution[edge] = 1  # Add edge to the rounded solution (matching)
+                matched_job_nodes.add(job)  # Mark the job node as matched
+            else:
+                if graph.is_tree_edge(edge):  # Check if the edge is a tree edge
+                    tree_edges.append(edge)  # Store the edge in the tree edges list
+                else:
+                    cycle_edges.append(edge)  # Store the edge in the cycle edges list
+                unmatched_job_nodes.add(job)  # Mark the job node as unmatched
+
+        matching = create_matching(tree_edges, cycle_edges, unmatched_job_nodes)  # Create the matching
+        rounded_solution.update(matching)  # Add the matching to the rounded solution
+
+    for job in set(graph.job_nodes) - matched_job_nodes:
+        rounded_solution[(None, job)] = 0  # Assign remaining unmatched job nodes to 0
+
+    return rounded_solution
+
+
