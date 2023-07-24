@@ -1,23 +1,27 @@
 class Graph:
-    def __init__(self, lp_solution_xij):
+    def __init__(self, lp_solution_xij: dict[tuple[int, int], float]):
         """
         Initialize a bipartite graph based on the LP solution.
-        :param lp_solution_xij: (dict): LP solution dictionary { (i, j): LpVariable, (i, j): LpVariable, ... }
+        :param lp_solution_xij: Dictionary of LP solution decision variables { (i, j): variable, (i, j): variable, ... }
         """
         self.machine_nodes = set()  # Set of machine nodes
         self.job_nodes = set()  # Set of job nodes
         self.edges = set()  # Set of edges in the graph
+        self.connected_components = []  # List to store connected components
 
-        for variable, lp_variable in lp_solution_xij.items():
-            machine, job = variable
-            self.machine_nodes.add(machine)
-            self.job_nodes.add(job)
-            if lp_variable.varValue > 0:  # Compare the variable's value with 0
-                self.edges.add((machine, job))
+        for (i, j), variable in lp_solution_xij.items():
+            self.machine_nodes.add(i)  # Add machine node i to the set of machine nodes
+            self.job_nodes.add(j)  # Add job node j to the set of job nodes
 
-    def get_connected_components(self):
+            if variable.varValue > 0:
+                self.edges.add((i, j))  # Add edge (i, j) to the set of edges if the variable's value is greater than 0
+
+        # Compute the connected components
+        self.connected_components = self._compute_connected_components()
+
+    def _compute_connected_components(self):
         """
-        Find the connected components of the graph.
+        Helper method to find the connected components of the graph.
         :return: list: List of connected components, where each component is a set of edges.
         """
         visited = set()
@@ -25,14 +29,14 @@ class Graph:
 
         for node in self.machine_nodes:
             if node not in visited:
-                component = self.dfs(node, visited)
+                component = self._dfs(node, visited)
                 components.append(component)
 
         return components
 
-    def dfs(self, start_node, visited):
+    def _dfs(self, start_node, visited):
         """
-        Depth-first search (DFS) to find the connected component starting from a given node.
+        Helper method for depth-first search (DFS) to find the connected component starting from a given node.
         :param start_node: The starting node for DFS.
         :param visited: A set of visited nodes.
         :return: set: The connected component as a set of edges.
@@ -54,9 +58,7 @@ class Graph:
         Check if the graph is a pseudoforest.
         :return: bool: True if the graph is a pseudoforest, False otherwise.
         """
-        components = self.get_connected_components()
-
-        for component in components:
+        for component in self.connected_components:
             machine_nodes = set()
             job_nodes = set()
 

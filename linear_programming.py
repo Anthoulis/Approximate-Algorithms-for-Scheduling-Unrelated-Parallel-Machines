@@ -1,7 +1,7 @@
 from pulp import *
 
 
-def LP(Pij, di, t):
+def LP(Pij: list[list[int]], di: list[int], t: int):
     """
     LP(P,d⃗,t)
     Solves the scheduling problem using linear programming. We drop integrity constrains.
@@ -62,7 +62,7 @@ def LP(Pij, di, t):
 
 
 # Helpful functions for converting data types of the solutions and printing methods------------------------------------
-def convert_decision_to_array(xij, m, n):
+def convert_decision_to_array(xij: dict[tuple[int, int], int], m, n):
     """
     Convert xij to an array.
     :param xij: dictionary of the decision variables representing the job assignments to machines.
@@ -78,7 +78,7 @@ def convert_decision_to_array(xij, m, n):
     return assignment_array
 
 
-def calculate_makespan(P, xij):
+def calculate_makespan(P, xij: dict[tuple[int, int], int]):
     """
     :param P: a 2D array representing the processing times of jobs on machines.
     :param xij: dictionary of the decision variables representing the job assignments to machines.
@@ -98,7 +98,7 @@ def calculate_makespan(P, xij):
     return makespan
 
 
-def round_decision(decision):
+def round_decision(decision: dict[tuple[int, int], int]):
     rounded_xij = {}
     for key, xij_value in decision.items():
         if isinstance(xij_value, LpVariable):
@@ -108,7 +108,7 @@ def round_decision(decision):
     return rounded_xij
 
 
-def print_decision_array(xij, m, n):
+def print_decision_array(xij: dict[tuple[int, int], int], m, n):
     """
     :param xij: dictionary of the decision variables representing the job assignments to machines.
     :param m: the number of machines.
@@ -120,7 +120,7 @@ def print_decision_array(xij, m, n):
         print(row)
 
 
-def print_schedule(P, xij):
+def print_schedule(P, xij: dict[tuple[int, int], int]):
     """
     Print Makespan and schedule of jobs assigned
     :param P: a 2D array representing the processing times of jobs on machines.
