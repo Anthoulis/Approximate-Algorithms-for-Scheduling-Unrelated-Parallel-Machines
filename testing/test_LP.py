@@ -1,12 +1,12 @@
 # #######################    Testing #################################################################################
-from linear_programming import *
+from RoundingTheorem import *
 
 
 def testLP():
     """
-    Tests the linear_programming.py module by solving a scheduling problem instance.
+    Tests the RoundingTheorem.py module by solving a scheduling problem instance.
     """
-    print('----------   Testing linear_programming.py   --------------------')
+    print('----------   Testing RoundingTheorem.py   --------------------')
     # Example input data
     Pij = [
         [3, 4, 2, 5, 2, 3, 4, 5, 3, 2, 4, 3, 2, 4, 3, 5, 4, 2, 3, 2, 4, 3, 5, 4, 2, 3, 2, 4, 3, 4],
@@ -45,7 +45,7 @@ def testLP():
     else:
         print("Cannot calculate makespan as no feasible solution found.")
 
-    print('----------   End of Testing linear_programming.py   -------------')
+    print('----------   End of Testing RoundingTheorem.py   -------------')
 
 
 # Run the test function

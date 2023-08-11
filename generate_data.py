@@ -1,20 +1,23 @@
 import csv
+import os
 import random
-import shutil
 
 
 def generate_random_value():
-    # r_number = random.random()
-    # if r_number < 0.9:
-    #     return random.randint(4, 7)
-    # else:
-    #     if r_number < 0.95:
-    #         return random.randint(1, 3)
-    #     return random.randint(8, 10)
+    """
+    The way and range values are generated
+    :return: The processing time of a job is between 1-100
+    """
     return random.randint(1, 100)
 
 
-def generate_random_data(m, n):
+def generate_pij(m, n):
+    """
+    Fill the 2d array Pij according to generate_random_value
+    :param m: number of machines
+    :param n: number of jobs
+    :return: 2d array Pij
+    """
     Pij = []
 
     for _ in range(m):
@@ -24,27 +27,28 @@ def generate_random_data(m, n):
     return Pij
 
 
-def run_data():
-    m = 100
-    n = 200
-    data_array = generate_random_data(m, n)
-
-    # Write data to CSV file
-    write_csv_file("random_data.csv", data_array)
-
-    # Print data
-    # CSV_functions.print_csv_file_data(data_array)
-
-
-def save_to_data():
-    source_file = "random_data.csv"
-    destination_file = "data.csv"
-
-    # Copy the source file to the destination file
-    shutil.copyfile(source_file, destination_file)
+def generate_filedata(filename: [], m: int, n: int):
+    """
+    If the file exists, it reads it and returns its data
+    Else it creates a new file and generates data
+    :param filename:
+    :param m: Number of machine
+    :param n: number of jobs
+    :return: 2d array Pij
+    """
+    # Check if the file already exists
+    if os.path.isfile(filename):
+        # Read and save the data from the existing file
+        data = read_csv_file(filename)
+    else:
+        data = generate_pij(m, n)
+        write_data_to_csv(filename, data)
+    return data
 
 
 # --------------   CSV Functions -------------------------------------------------
+
+
 def read_csv_file(filename):
     data = []
     with open(filename, 'r') as file:
@@ -54,13 +58,25 @@ def read_csv_file(filename):
     return data
 
 
-def write_csv_file(filename, data):
+def write_data_to_csv(filename, data):
     with open(filename, 'w', newline='') as file:
         writer = csv.writer(file)
         for row in data:
             writer.writerow(row)
 
 
-def print_csv_file_data(data):
-    for row in data:
-        print(row)
+def print_csv_file(filename):
+    # Check if the file already exists
+    if os.path.isfile(filename):
+        # Read and save the data from the existing file
+        data = read_csv_file(filename)
+        for row in data:
+            print(row)
+    else:
+        print("File not found")
+
+
+# Generate File Data
+if __name__ == "__main__":
+    generate_filedata("test2.csv", 30, 100)
+    print_csv_file("test2.csv")

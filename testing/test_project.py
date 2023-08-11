@@ -22,7 +22,7 @@ def run_test(test):
             [1, 5, 4, 2, 3, 2, 4, 3, 5, 4, 2, 3, 2, 4, 3, 5, 4, 2, 3, 2, 4, 3, 5, 4, 2, 3, 2, 4, 3, 5],
             [2, 3, 1, 5, 4, 2, 3, 1, 2, 3, 4, 2, 1, 5, 4, 3, 2, 4, 3, 1, 2, 3, 4, 2, 5, 1, 3, 2, 4, 3],
             [3, 4, 2, 5, 2, 3, 4, 5, 3, 2, 4, 3, 2, 4, 3, 5, 4, 2, 3, 2, 4, 3, 5, 4, 2, 3, 2, 4, 3, 5]]
-        write_csv_file(file_path, data)
+        write_data_to_csv(file_path, data)
 
     P = data
     m = len(data)  # number of machines
@@ -33,8 +33,8 @@ def run_test(test):
     print('|-----', test, '----------------------------------------')
     # Our data
     print('Pij:', m, 'machines x', n, ' jobs')
-    for row in data:
-        print(*row)
+    # for row in data:
+    #     print(*row)
     print()
     # Greedy Makespan
     print("Calculated Greedy makespan: t = ", t)
@@ -45,20 +45,21 @@ def run_test(test):
         # LP
         print("LP decision array")
         print("Makespan = ", lp_solution[0])
-        print_decision_array(lp_solution[1], m, n)
+        # print_decision_array(lp_solution[1], m, n)
         print()
 
         # LP ROUNDED
+        # todo:
         print("LP Rounded ")
         # Makespan
-        x_round = convert_decision_to_array(lp_solution[1], m, n)
-        for i in range(m):
-            for j in range(n):
-                x_round[i][j] = round(x_round[i][j])
-        x_round_makespan = calculate_makespan(P, x_round)
-        print("Makespan = ", x_round_makespan)
+        # x_round = convert_decision_to_array(lp_solution[1], m, n)
+        # for i in range(m):
+        #     for j in range(n):
+        #         x_round[i][j] = round(x_round[i][j])
+        # x_round_makespan = calculate_makespan(P, x_round)
+        # print("Makespan = ", x_round_makespan)
         print("LP Rounded Schedule")
-        print_schedule(lp_solution[1], m, n)
+        print_schedule(P, lp_solution[1])
         print()
 
         # IP
@@ -69,7 +70,7 @@ def run_test(test):
         print("Makespan = ", ip_solution[0])
         print_decision_array(ip_solution[1], m, n)
         print("IP Schedule")
-        print_schedule(ip_solution[1], m, n)
+        print_schedule(P, ip_solution[1])
     else:
         print("No feasible solution found.")
     print('|--- End of ', test, '-----------------------------------------------------------|')

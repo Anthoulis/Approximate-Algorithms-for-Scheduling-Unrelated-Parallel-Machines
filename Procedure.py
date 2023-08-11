@@ -1,7 +1,7 @@
 import numpy as np
 
-from Graph import *
-from linear_programming import *
+from RoundingTheorem import *
+from BipartiteGraph import *
 
 """
 Step1 : Calculate t which is the greedy makespan
@@ -22,10 +22,12 @@ Step4 : Create a decision_procedure LP(P,d) using the LP(P,d⃗,t) of the roundi
         
 Step5 : While upper - lower > 1 use decision_procedure and search the deadline that gives the minimum makespan
         Return best_solution and the deadline for that solution.
+
+Step6 : Round solution using Bipartite Graph
 """
 
 
-def greedy_schedule(P):
+def greedy_schedule(P: list[list[int]]):
     """
     Computes the makespan of a schedule by assigning each job to the machine with the minimum processing time.
     Args:
@@ -41,14 +43,14 @@ def greedy_schedule(P):
     machines_load = np.zeros(m)  # Initialize the load of each machine
 
     for j in range(n):
-        machine = np.argmin(P[:, j])  # Find machine with minimum processing time for job j
+        machine = np.argmin(P[:, j])  # Find machine with minimum processing time for a job j
         machines_load[machine] += P[machine, j]  # Assign job j to the selected machine
 
     makespan = np.max(machines_load)  # Compute the makespan as the maximum load among machines
     return makespan
 
 
-def two_relaxed_decision_procedure(P, d):
+def two_relaxed_decision_procedure(P: list[list[int]], d: int):
     # d1 = d2 = .... dm = t = d
     di = [d] * len(P)
     solution = LP(P, di, d)
@@ -57,10 +59,8 @@ def two_relaxed_decision_procedure(P, d):
     return None
 
 
-def binary_search_procedure(P):
+def binary_search_procedure(P: list[list[int]], t: int):
     m = len(P)  # number of machines
-    n = len(P[0])  # number of jobs
-    t = greedy_schedule(P)  # t = makespan of greedy schedule
     upper_bound = t
     lower_bound = t // m
 
@@ -80,58 +80,11 @@ def binary_search_procedure(P):
     return best_solution, best_d
 
 
-# TODO: Create the rounding method with the Graphs
-def create_matching(tree_edges, cycle_edges, unmatched_job_nodes):
-    matching = {}
-
-    for edge in tree_edges:
-        machine, job = edge
-        matching[(machine, job)] = 1
-        unmatched_job_nodes.discard(job)
-
-    for edge in cycle_edges:
-        machine, job = edge
-        if job in unmatched_job_nodes:
-            matching[(machine, job)] = 1
-            unmatched_job_nodes.remove(job)
-
-    return matching
-
-
-def round_lp_solution(lp_solution):
-    lp_solution_xij = lp_solution[1]  # Extract the LP solution dictionary
-    graph = Graph(lp_solution_xij)  # Create an instance of the Graph class using the LP solution dictionary
-
-    components = graph.get_connected_components()  # Identify the connected components of the graph
-    if not graph.is_pseudoforest():  # Check if the graph is a pseudoforest
-        raise ValueError("Graph is not a pseudoforest.")
-
-    rounded_solution = {}  # Initialize the rounded solution dictionary
-    matched_job_nodes = set()  # Track the job nodes that have been matched
-
-    for component in components:
-        tree_edges = []  # Edges belonging to a tree
-        cycle_edges = []  # Edges belonging to a cycle
-        unmatched_job_nodes = set()  # Unmatched job nodes within the component
-
-        for edge in component:
-            machine, job = edge
-            if lp_solution_xij[edge].varValue == 1:
-                rounded_solution[edge] = 1  # Add edge to the rounded solution (matching)
-                matched_job_nodes.add(job)  # Mark the job node as matched
-            else:
-                if graph.is_tree_edge(edge):  # Check if the edge is a tree edge
-                    tree_edges.append(edge)  # Store the edge in the tree edges list
-                else:
-                    cycle_edges.append(edge)  # Store the edge in the cycle edges list
-                unmatched_job_nodes.add(job)  # Mark the job node as unmatched
-
-        matching = create_matching(tree_edges, cycle_edges, unmatched_job_nodes)  # Create the matching
-        rounded_solution.update(matching)  # Add the matching to the rounded solution
-
-    for job in set(graph.job_nodes) - matched_job_nodes:
-        rounded_solution[(None, job)] = 0  # Assign remaining unmatched job nodes to 0
-
-    return rounded_solution
-
-
+def round_lpSolution(lp_solution_xij: dict[tuple[int, int], LpVariable], m: int, n: int):
+    bipartiteGraph = BipartiteGraph(lp_solution_xij, m, n)
+    for i, j in bipartiteGraph.matching:
+        lp_solution_xij[i, j].varValue = 1
+    for key in lp_solution_xij:
+        if lp_solution_xij[key].varValue != 1:
+            lp_solution_xij[key].varValue = 0
+    return lp_solution_xij

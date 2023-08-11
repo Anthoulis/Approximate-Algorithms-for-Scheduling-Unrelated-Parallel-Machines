@@ -1,52 +1,46 @@
-from IP import *
 from Procedure import *
+from SchedulingProblem import SchedulingProblem
 from generate_data import read_csv_file
 
 
-def run_main(filename_data):
-    file_path = filename_data
-    # Check if the file already exists
-    if os.path.isfile(file_path):
-        # Read and save the data from the existing file
-        data = read_csv_file(file_path)
-    else:
-        print("Data file not found")
-        return
+def run_main(filename):
+    P = read_csv_file(filename)
 
-    P = data
-    m = len(data)  # number of machines
-    n = len(data[0])  # number of jobs
-    t = greedy_schedule(P)
-    lp_solution, deadline = binary_search_procedure(P)  # lp_solution = makespan , xij
-    ###############################################################################################
-    print('|-----', filename_data, '----------------------------------------')
-    # Our data
-    print('Pij:', m, 'machines x', n, ' jobs')
-    # Greedy Makespan
+    print('|-----', filename, '-------------------------------------------------------------------------------------|')
+    # Initialize Scheduling Problem
+    scheduling_prob = SchedulingProblem(P)
+    scheduling_prob.print_info()
+    # Greedy Schedule makespan t
+    t = greedy_schedule(scheduling_prob.P)
     print("Calculated Greedy makespan: t = ", t)
-    print("Using Procedure best calculated Deadline: d = ", deadline)
+    # Run Binary Search Procedure
+    lp_solution, deadline = binary_search_procedure(scheduling_prob.P, t)  # lp_solution = makespan , xij : dict
+    scheduling_prob.makespan = lp_solution[0]
+    scheduling_prob.update_xij(lp_solution[1])
+    print("Using Procedure the deadline with minimum makespan: d = ", deadline)
     print()
 
     if lp_solution is not None:
 
-        # Solution
-        print("Solution ")
-        # TODO: round lp_solution
-        lp_solution_rounded = round_lp_solution(lp_solution)
-        print_schedule(P, lp_solution_rounded[1])
+        # Solution Linear Programming
+        print("\nSolution using the Procedure with Linear Programming LP(P,d⃗,t) and Bipartite Graph for rounding "
+              "solution")
+        rounded_lpSolution = round_lpSolution(lp_solution[1], scheduling_prob.m, scheduling_prob.n)
+        scheduling_prob.update_xij(rounded_lpSolution)
+        scheduling_prob.calculate_makespan()
+        scheduling_prob.print_schedule()
 
-        # IP
-        print("IP Solution")
-        di = [deadline] * m
+        # Solution Integer Programming
+        print("\nSolution using Integer Programming IP(P,d⃗,t)")
+        di = [deadline] * scheduling_prob.m
         ip_solution = IP(P, di, t)
-        # print_decision_array(ip_solution[1], m, n)
         print("IP Schedule")
-        print_schedule(P, ip_solution[1])
+        print_schedule(P, ip_solution)
     else:
-        print("No feasible solution found.")
-    print('|--- End of ', filename_data, '-----------------------------------------------------------|')
+        print("No feasible solution found during Binary Search Procedure")
+    print('|--- End of ', filename, '-----------------------------------------------------------|')
 
 
-# Execute the main function
+# Choose which data to run
 if __name__ == "__main__":
     run_main('data.csv')
