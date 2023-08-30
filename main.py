@@ -43,4 +43,4 @@ def run_main(filename):
 
 # Choose which data to run
 if __name__ == "__main__":
-    run_main('data.csv')
+    run_main('test2.csv')

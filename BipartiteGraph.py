@@ -80,6 +80,7 @@ class BipartiteGraph:
         self.find_connected_components()
         self.visualize_graph()
         self.visualize_pseudoforest()
+        self.print_graph_info()
 
         # step 5
         self.find_connected_subgraphs()
@@ -147,6 +148,9 @@ class BipartiteGraph:
 
         # Each job node must have at least one child
         job_nodes = [node for node in subgraph.nodes if node.startswith("j")]
+        if not job_nodes:
+            print("Error: No job nodes in the subgraph.")
+            return False
         for job_node in job_nodes:
             neighbors = list(subgraph.neighbors(job_node))
             if not any(neighbor for neighbor in neighbors):
@@ -157,7 +161,7 @@ class BipartiteGraph:
         matched_machines = set()  # Set to keep track of matched machines
 
         # Choose any node as the root of the tree
-        root = list(subgraph.nodes)[0]
+        root = job_nodes[0]
 
         # Depth-First Search (DFS)
         def dfs(node, parent):
@@ -203,6 +207,11 @@ class BipartiteGraph:
         :param subgraph: A NetworkX subgraph representing a connected component of the graph.
         :return: True if the matching process is successful, False otherwise.
         """
+        # Check if the graph is empty
+        if subgraph.number_of_nodes() == 0:
+            print("Error: The graph is empty.")
+            return False
+
         is_successful = True
 
         # Identify the cycle in the component
@@ -211,25 +220,13 @@ class BipartiteGraph:
             print("Error: The component must contain one even-length cycle.")
             return False
 
-        cycle_nodes = cycles[0]
+        # If there is a cycle, remove one arbitrary edge from it.
+        if len(cycles[0]) >= 2:
+            u, v = cycles[0][0], cycles[0][1]
+            subgraph.remove_edge(u, v)
 
-        # Take alternate edges from the cycle for the final matching
-        for i in range(0, len(cycle_nodes), 2):
-            machine = cycle_nodes[i]
-            job = cycle_nodes[(i + 1) % len(cycle_nodes)]
-            self.matching.append((int(machine[1:]), int(job[1:])))
-
-        # Delete the edges of the cycle to convert it to trees
-        for i in range(len(cycle_nodes)):
-            machine = cycle_nodes[i]
-            job = cycle_nodes[(i + 1) % len(cycle_nodes)]
-            subgraph.remove_edge(machine, job)
-
-        # Use the match_tree_component method on the remaining tree components
-        for cycle_node in cycle_nodes:
-            tree_subgraph = nx.ego_graph(subgraph, cycle_node, radius=None, undirected=True, center=False)
-            if not self.match_tree_component(tree_subgraph):
-                is_successful = False
+        # Now the subgraph is a tree
+        self.match_tree_component(subgraph)
 
         return is_successful
 
@@ -240,8 +237,10 @@ class BipartiteGraph:
 
         for component in self.connected_components:
             subgraph = self.graph.subgraph(component)
+            # if number of edges < number of nodes
             if nx.is_tree(subgraph):
                 self.match_tree_component(subgraph)
+            # number of edges = number of nodes
             else:
                 self.match_cycle_component(subgraph)
 
