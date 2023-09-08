@@ -71,7 +71,9 @@ class BipartiteGraph:
 
         # Step 2
         self.find_connected_components()
+        print("\nGraph G")
         self.print_graph_info()
+        self.visualize_graph()
         # Step 3
         self.check_pseudoforest_property()
 
@@ -79,12 +81,11 @@ class BipartiteGraph:
         self.remove_single_degree_jobs()
         self.find_connected_components()
         self.visualize_graph()
-        self.visualize_pseudoforest()
+        print("\nGraph G'")
         self.print_graph_info()
 
         # step 5
         self.find_connected_subgraphs()
-        self.visualize_connected_subgraphs()
         self.matching_process()
 
     """---------    Step 2  ------------"""
@@ -253,14 +254,13 @@ class BipartiteGraph:
 
     # Print   ------------------------------------
     def print_graph_info(self):
-        print("\n------------------------- Graph Info ------------------------")
         if self.is_pseudoforest:
-            print("Pseudoforest Property applies. Graph G is a pseudoforest")
+            print("Pseudoforest Property applies. Graph is a pseudoforest")
         print("Number of nodes:", len(self.graph.nodes))
         print("Number of edges:", len(self.graph.edges))
         # print("\nNodes in the graph:\n",self.graph.nodes)
         # print("\nEdges in the graph:\n",self.graph.edges)
-        print("List size of different connected components:", len(self.connected_components))
+        print("List size of different connected components:", len(self.connected_components), "\n")
 
     def print_subgraph_info(self):
         print("------------------ Subgraph Info ----------------")
@@ -278,19 +278,10 @@ class BipartiteGraph:
         plt.title("Bipartite Graph Representation")
         plt.show()  # Show the figure
 
-    def visualize_pseudoforest(self):
-        plt.figure()  # Create a new figure
-        pos = nx.spring_layout(self.graph)
-        nx.draw(self.graph, pos, with_labels=True, node_color="skyblue", node_size=500, font_size=8)
-        plt.title("Pseudoforest Graph Representation")
-        plt.show()  # Show the figure
-
     def visualize_connected_subgraphs(self):
         plt.figure(figsize=(12, 12))  # Create a new figure and adjust the size
         pos = nx.spring_layout(self.graph)
         colors = ['r', 'g', 'b', 'y', 'c', 'm', 'o', 'k']
-        num_subgraphs = len(self.connected_components)
-        print(f"Number of connected subgraphs: {num_subgraphs}")
 
         for idx, subgraph_nodes in enumerate(self.connected_components):
             subgraph = self.graph.subgraph(subgraph_nodes)

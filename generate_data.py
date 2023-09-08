@@ -5,8 +5,8 @@ import random
 
 def generate_random_value():
     """
-    The way and range values are generated
-    :return: The processing time of a job is between 1-100
+    The way and the range where values are generated
+    :return: The processing time of a job are between 1-100
     """
     return random.randint(1, 100)
 
@@ -50,12 +50,16 @@ def generate_filedata(filename: [], m: int, n: int):
 
 
 def read_csv_file(filename):
-    data = []
-    with open(filename, 'r') as file:
-        reader = csv.reader(file)
-        for row in reader:
-            data.append([int(cell) for cell in row])
-    return data
+    if os.path.isfile(filename):
+        data = []
+        with open(filename, 'r') as file:
+            reader = csv.reader(file)
+            for row in reader:
+                data.append([int(cell) for cell in row])
+        return data
+    else:
+        print("File not Found")
+        return None
 
 
 def write_data_to_csv(filename, data):
@@ -77,6 +81,7 @@ def print_csv_file(filename):
 
 
 # Generate File Data
+# generate_filedata("filename", m, n)
 if __name__ == "__main__":
-    generate_filedata("test2.csv", 30, 100)
-    print_csv_file("test2.csv")
+    generate_filedata("data4.csv", 3000, 10000)
+    print_csv_file("data4.csv")

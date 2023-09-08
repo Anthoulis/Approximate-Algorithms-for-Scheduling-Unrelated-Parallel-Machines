@@ -24,7 +24,7 @@ class SchedulingProblem:
 
     def calculate_makespan(self) -> int:
         """
-        Calculates the makespan based on the P matrix and xij decision variables.
+        Calculates the makespan based on the Pij matrix and xij decision variables.
 
         :return: The calculated makespan.
         """

@@ -1,30 +1,29 @@
-import numpy as np
-
-from RoundingTheorem import *
-from BipartiteGraph import *
-
 """
-Step1 : Calculate t which is the greedy makespan
+Step1: Calculate t, which is the greedy makespan
 
-Step2 : Set upper u and lower l bound using t , upper_bound = t and lower_bound = t//m where m is number of machines
+Step2: Set upper u and lower l bound using t, upper_bound = t and lower_bound = t//m where m is number of machines
 
-Step3 : Create a linear problem LP(P,d⃗,t) where 
-    P = 2D array m machines and n jobs. Pij the process time of machine i to execute job j.
-    d⃗ = ( d1,...,dm ) ∈ Z .  deadline
+Step3: Create a linear problem LP(Pij, d⃗,t) where
+    Pij = 2D array m machines and n jobs.
+    Pij the process time of machine i to execute a job j.
+    d⃗ = (d1,...,dm) ∈ Z. deadline
     t ∈ Z
     Constrains:
-    i ∈ Mj(t)_Sum ( xij = 1 ) for j=1,...,n
-    j ∈ Ji(t)_Sum ( pij*xij <= di ) for i=1,...,m
-    xij>=0 for j ∈ Ji(t),  i=1,...,m
+    i ∈ Mj(t)_Sum (xij = 1) for j=1,...,n
+    j ∈ Ji(t)_Sum (pij*xij <= di) for i=1,...,m
+    xij>=0 for j ∈ Ji(t), i=1,...,m
 
-Step4 : Create a decision_procedure LP(P,d) using the LP(P,d⃗,t) of the rounding theorem 
-        where d = d1 = d2 = .. = dm = t = d that returns solution if feasible and if not returns none.
-        
-Step5 : While upper - lower > 1 use decision_procedure and search the deadline that gives the minimum makespan
+Step4: Create a decision_procedure LP(Pij, d) using the LP(Pij, d⃗,t) of the rounding theorem
+        where d = d1 = d2 = ... = dm = t = d that returns solution if feasible and if not returns none.
+
+Step5: While upper - lower > 1 use decision_procedure and search the deadline that gives the minimum makespan
         Return best_solution and the deadline for that solution.
 
-Step6 : Round solution using Bipartite Graph
+Step6: Round solution using Bipartite Graph
 """
+import numpy as np
+from RoundingTheorem import *
+from BipartiteGraph import *
 
 
 def greedy_schedule(P: list[list[int]]):
@@ -36,7 +35,7 @@ def greedy_schedule(P: list[list[int]]):
     Returns:
         int: The makespan of the schedule, i.e., the maximum load among all machines.
     """
-    P = np.array(P)  # Convert P to a NumPy array
+    P = np.array(P)  # Convert Pij to a NumPy array
     m = len(P)  # Number of machines
     n = len(P[0])  # Number of jobs
 
@@ -51,11 +50,25 @@ def greedy_schedule(P: list[list[int]]):
 
 
 def two_relaxed_decision_procedure(P: list[list[int]], d: int):
+    """
+    A p-relaxed decision procedure outputs either 'no' or 'almost'; more precisely, for the input (Pij, d):
+
+    If the output is 'almost,' then there exists a solution with makespan at most d, and we return a solution with
+    makespan at most p×d.
+    If the output is 'no,' then there is no solution with makespan at most d.
+
+    ***Note .The procedure uses linear programming to determine if such a feasible solution exists.
+    However, linear programming can produce solutions that are real numbers, thereby bypassing the integer constraints
+    necessary for the practical implementation of the program.
+    Consequently, even if the linear problem produces a solution with a makespan of d, it is not guaranteed that there
+    will be a corresponding integer solution.
+    This is why we return a solution with a makespan at most 2*d.
+    """
     # d1 = d2 = .... dm = t = d
     di = [d] * len(P)
     solution = LP(P, di, d)
     if solution is not None:
-        return solution
+        return LP(P, 2 * di, 2 * d)
     return None
 
 
@@ -66,7 +79,7 @@ def binary_search_procedure(P: list[list[int]], t: int):
 
     best_solution = None
     best_d = None
-    while upper_bound - lower_bound > 1:
+    while lower_bound < upper_bound:
         d = (upper_bound + lower_bound) // 2
         solution = two_relaxed_decision_procedure(P, d)
         if solution is not None:

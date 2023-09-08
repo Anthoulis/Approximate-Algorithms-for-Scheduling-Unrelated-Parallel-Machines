@@ -18,20 +18,24 @@ def run_main(filename):
     scheduling_prob.makespan = lp_solution[0]
     scheduling_prob.update_xij(lp_solution[1])
     print("Using Procedure the deadline with minimum makespan: d = ", deadline)
-    print()
+    print("The Linear Programming LP(Pij,d⃗,t) with the deadline d creates a not integral schedule with makespan = ",
+          scheduling_prob.makespan)
 
     if lp_solution is not None:
 
-        # Solution Linear Programming
-        print("\nSolution using the Procedure with Linear Programming LP(P,d⃗,t) and Bipartite Graph for rounding "
-              "solution")
+        # Solution using Bipartite Graph for rounding
+        print("\nIn order to round this solution we create a Bipartite Graph G")
         rounded_lpSolution = round_lpSolution(lp_solution[1], scheduling_prob.m, scheduling_prob.n)
         scheduling_prob.update_xij(rounded_lpSolution)
         scheduling_prob.calculate_makespan()
+        print("This the final result. An approximate solution using Linear Programming, Decision Procedure and "
+              "Bipartite Graph")
         scheduling_prob.print_schedule()
 
-        # Solution Integer Programming
-        print("\nSolution using Integer Programming IP(P,d⃗,t)")
+        # Using IP(Pij,d⃗,t) with deadline d from Procedure to compare results with Graph rounding
+        print("\nFrom the Rounding Theorem we use IP(Pij,d⃗,t) with deadline d from Procedure")
+        print("We use this result for reference to our rounding.")
+        print("*Note. This isn't the best possible makespan")
         di = [deadline] * scheduling_prob.m
         ip_solution = IP(P, di, t)
         print("IP Schedule")
@@ -43,4 +47,4 @@ def run_main(filename):
 
 # Choose which data to run
 if __name__ == "__main__":
-    run_main('test2.csv')
+    run_main('data2.csv')

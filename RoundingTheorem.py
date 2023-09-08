@@ -3,7 +3,7 @@ from pulp import *
 
 def LP(Pij: list[list[int]], di: list[int], t: int) -> (int, dict[tuple[int, int]]):
     """
-    LP(P, d⃗,t)
+    LP(Pij, d⃗,t)
     Solves the scheduling problem using linear programming. We drop integrity constrains.
     :param Pij: A 2D array representing the processing times of jobs on machines.
     :param di: A list of machine deadlines.
@@ -63,7 +63,7 @@ def LP(Pij: list[list[int]], di: list[int], t: int) -> (int, dict[tuple[int, int
 
 def IP(Pij: list[list[int]], di: list[int], t: int) -> (int, dict[tuple[int, int]]):
     """
-        IP(P, d⃗,t)
+        IP(Pij, d⃗,t)
         Solves the scheduling problem using integer programming.
         We keep integrity constrained.
         :param Pij: A 2D array representing the processing times of jobs on machines.
