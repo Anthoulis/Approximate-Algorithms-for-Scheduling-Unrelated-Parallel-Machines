@@ -16,7 +16,7 @@ Step3: Create a linear problem LP(Pij, d⃗,t) where
 Step4: Create a decision_procedure LP(Pij, d) using the LP(Pij, d⃗,t) of the rounding theorem
         where d = d1 = d2 = ... = dm = t = d that returns solution if feasible and if not returns none.
 
-Step5: While upper - lower > 1 use decision_procedure and search the deadline that gives the minimum makespan
+Step5: While lower < upper use decision_procedure and search the deadline that gives the minimum makespan
         Return best_solution and the deadline for that solution.
 
 Step6: Round solution using Bipartite Graph
@@ -29,11 +29,9 @@ from BipartiteGraph import *
 def greedy_schedule(P: list[list[int]]):
     """
     Computes the makespan of a schedule by assigning each job to the machine with the minimum processing time.
-    Args:
-        P (numpy.ndarray): 2D array representing the processing times of jobs on different machines.
-                           Shape: (m, n), where m is the number of machines and n is the number of jobs.
-    Returns:
-        int: The makespan of the schedule, i.e., the maximum load among all machines.
+
+    :param P: 2D array representing the processing times of jobs on different machines.
+    :return: The makespan of the schedule, the maximum load among all machines.
     """
     P = np.array(P)  # Convert Pij to a NumPy array
     m = len(P)  # Number of machines
@@ -51,11 +49,12 @@ def greedy_schedule(P: list[list[int]]):
 
 def two_relaxed_decision_procedure(P: list[list[int]], d: int):
     """
-    A p-relaxed decision procedure outputs either 'no' or 'almost'; more precisely, for the input (Pij, d):
+    A two-relaxed decision procedure LP(P, d) outputs either 'no' or 'almost'; more precisely, for the input (Pij, d):
 
     If the output is 'almost,' then there exists a solution with makespan at most d, and we return a solution with
     makespan at most p×d.
     If the output is 'no,' then there is no solution with makespan at most d.
+    It uses the LP(Pij, d⃗,t) from the RoundingTheorem where d1 = d2 = … dm = t = d
 
     ***Note .The procedure uses linear programming to determine if such a feasible solution exists.
     However, linear programming can produce solutions that are real numbers, thereby bypassing the integer constraints
@@ -63,8 +62,10 @@ def two_relaxed_decision_procedure(P: list[list[int]], d: int):
     Consequently, even if the linear problem produces a solution with a makespan of d, it is not guaranteed that there
     will be a corresponding integer solution.
     This is why we return a solution with a makespan at most 2*d.
+    :param P:
+    :param d: d1 = d2 = … dm = t = d
     """
-    # d1 = d2 = .... dm = t = d
+
     di = [d] * len(P)
     solution = LP(P, di, d)
     if solution is not None:
@@ -73,6 +74,13 @@ def two_relaxed_decision_procedure(P: list[list[int]], d: int):
 
 
 def binary_search_procedure(P: list[list[int]], t: int):
+    """
+    While lower bound < upper bound run the LP(d,t) decision procedure in order to find the deadline and solution with
+    the minimum makespan
+    :param P: 2D array m machines and n jobs.
+    :param t:
+    :return:
+    """
     m = len(P)  # number of machines
     upper_bound = t
     lower_bound = t // m
@@ -94,6 +102,13 @@ def binary_search_procedure(P: list[list[int]], t: int):
 
 
 def round_lpSolution(lp_solution_xij: dict[tuple[int, int], LpVariable], m: int, n: int):
+    """
+    We round the solution of the LP(Pij, d⃗,t) with the use of Bipartite Graph
+    :param lp_solution_xij: linear solution
+    :param m: machines
+    :param n: jobs
+    :return: rounded solution
+    """
     bipartiteGraph = BipartiteGraph(lp_solution_xij, m, n)
     for i, j in bipartiteGraph.matching:
         lp_solution_xij[i, j].varValue = 1

@@ -4,7 +4,8 @@ from pulp import *
 def LP(Pij: list[list[int]], di: list[int], t: int) -> (int, dict[tuple[int, int]]):
     """
     LP(Pij, d⃗,t)
-    Solves the scheduling problem using linear programming. We drop integrity constrains.
+    Solves the scheduling problem using linear programming.
+    We drop integer constraint.
     :param Pij: A 2D array representing the processing times of jobs on machines.
     :param di: A list of machine deadlines.
     :param t: The maximum time units allowed for Ji(t) and Mj(t) sets.
@@ -63,15 +64,15 @@ def LP(Pij: list[list[int]], di: list[int], t: int) -> (int, dict[tuple[int, int
 
 def IP(Pij: list[list[int]], di: list[int], t: int) -> (int, dict[tuple[int, int]]):
     """
-        IP(Pij, d⃗,t)
-        Solves the scheduling problem using integer programming.
-        We keep integrity constrained.
-        :param Pij: A 2D array representing the processing times of jobs on machines.
-        :param di: A list of machine deadlines.
-        :param t: The maximum time units allowed for Ji(t) and Mj(t) sets.
-        :return: The minimum makespan achieved, dictionary of the decision variables representing the job assignments
-                 to machines (i,j): LpVariable
-        """
+    IP(Pij, d⃗,t)
+    Solves the scheduling problem using integer programming.
+    We keep integer constraint.
+    :param Pij: A 2D array representing the processing times of jobs on machines.
+    :param di: A list of machine deadlines.
+    :param t: The maximum time units allowed for Ji(t) and Mj(t) sets.
+    :return: The minimum makespan achieved, dictionary of the decision variables representing the job assignments
+             to machines (i,j): LpVariable
+    """
     m = len(Pij)  # Number of machines
     n = len(Pij[0])  # Number of jobs
 
@@ -128,7 +129,7 @@ def calculate_makespan(P, xij: dict[tuple[int, int], LpVariable]):
     """
     :param P: a 2D array representing the processing times of jobs on machines.
     :param xij: dictionary of the decision variables representing the job assignments to machines.
-    :return:
+    :return: makespan
     """
     m = len(P)
     n = len(P[0])

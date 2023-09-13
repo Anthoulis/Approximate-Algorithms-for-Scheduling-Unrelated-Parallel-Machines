@@ -31,7 +31,7 @@ def generate_filedata(filename: [], m: int, n: int):
     """
     If the file exists, it reads it and returns its data
     Else it creates a new file and generates data
-    :param filename:
+    :param filename: Name of the file
     :param m: Number of machine
     :param n: number of jobs
     :return: 2d array Pij
@@ -83,5 +83,5 @@ def print_csv_file(filename):
 # Generate File Data
 # generate_filedata("filename", m, n)
 if __name__ == "__main__":
-    generate_filedata("data4.csv", 3000, 10000)
-    print_csv_file("data4.csv")
+    generate_filedata("data5.csv", 30, 100)
+    print_csv_file("data5.csv")

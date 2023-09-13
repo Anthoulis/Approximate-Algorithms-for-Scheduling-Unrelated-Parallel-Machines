@@ -74,6 +74,7 @@ class BipartiteGraph:
         print("\nGraph G")
         self.print_graph_info()
         self.visualize_graph()
+
         # Step 3
         self.check_pseudoforest_property()
 
