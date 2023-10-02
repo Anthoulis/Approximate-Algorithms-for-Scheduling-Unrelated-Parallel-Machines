@@ -70,9 +70,9 @@ class BipartiteGraph:
 
         # Step 2
         self.find_connected_components()
-        print("\nGraph G")
-        self.print_graph_info()
-        # self.visualize_graph()
+        #print("\nGraph G")
+        #self.print_graph_info()
+        #self.visualize_graph()
 
         # Step 3
         self.check_pseudoforest_property()
@@ -80,9 +80,9 @@ class BipartiteGraph:
         # step 4
         self.remove_single_degree_jobs()
         self.find_connected_components()
-        # self.visualize_graph()
-        print("\nGraph G'")
-        self.print_graph_info()
+        #self.visualize_graph()
+        #print("\nGraph G'")
+        #self.print_graph_info()
 
         # step 5
         self.find_connected_subgraphs()

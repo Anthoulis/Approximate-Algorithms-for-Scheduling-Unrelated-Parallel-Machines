@@ -62,7 +62,15 @@ def two_relaxed_decision_procedure(P: list[list[int]], d: int):
     di = [d] * len(P)
     solution = LP(P, di, d)
     if solution is not None:
-        return solution
+        m = len(P)
+        n = len(P[0])
+
+        # Round solution
+        r_xij = round_lpSolution(solution[1], m, n)
+        r_makespan = calculate_makespan(P, r_xij)
+
+        if r_makespan <= 2*d:
+            return solution
     return None
 
 
