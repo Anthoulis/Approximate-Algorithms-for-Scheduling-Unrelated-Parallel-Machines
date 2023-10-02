@@ -39,7 +39,6 @@ class BipartiteGraph:
     def __init__(self, lp_solution_xij: dict[tuple[int, int], LpVariable], num_machines: int, num_jobs: int):
         """
         Initializes the BipartiteGraph class with a given LP solution, number of machines, and number of jobs.
-
         :param lp_solution_xij: Dictionary containing LP solution variables.
         :param num_machines: Number of machines in the graph.
         :param num_jobs: Number of jobs in the graph.
@@ -73,7 +72,7 @@ class BipartiteGraph:
         self.find_connected_components()
         print("\nGraph G")
         self.print_graph_info()
-        self.visualize_graph()
+        # self.visualize_graph()
 
         # Step 3
         self.check_pseudoforest_property()
@@ -81,12 +80,13 @@ class BipartiteGraph:
         # step 4
         self.remove_single_degree_jobs()
         self.find_connected_components()
-        self.visualize_graph()
+        # self.visualize_graph()
         print("\nGraph G'")
         self.print_graph_info()
 
         # step 5
         self.find_connected_subgraphs()
+        # self.visualize_connected_subgraphs()
         self.matching_process()
 
     """---------    Step 2  ------------"""
@@ -129,6 +129,13 @@ class BipartiteGraph:
         for job in single_degree_jobs:
             self.graph.remove_node(job)
 
+        # Find machine nodes with degree 0
+        zero_degree_machines = [node for node in self.get_machine_nodes() if self.graph.degree(node) == 0]
+
+        # Remove machine nodes with degree 0
+        for machine in zero_degree_machines:
+            self.graph.remove_node(machine)
+
     def find_connected_subgraphs(self):
         """
         Finds and stores the connected subgraphs of the graph after removing single-degree jobs.
@@ -148,11 +155,11 @@ class BipartiteGraph:
         """
         is_successful = True
 
-        # Each job node must have at least one child
         job_nodes = [node for node in subgraph.nodes if node.startswith("j")]
         if not job_nodes:
             print("Error: No job nodes in the subgraph.")
             return False
+        # Each job node must have at least one child
         for job_node in job_nodes:
             neighbors = list(subgraph.neighbors(job_node))
             if not any(neighbor for neighbor in neighbors):
@@ -163,7 +170,7 @@ class BipartiteGraph:
         matched_machines = set()  # Set to keep track of matched machines
 
         # Choose any node as the root of the tree
-        root = job_nodes[0]
+        root = job_nodes[len(job_nodes) // 2]
 
         # Depth-First Search (DFS)
         def dfs(node, parent):
@@ -172,9 +179,10 @@ class BipartiteGraph:
                 # Find the first child node that is not the parent
                 for neighbor in subgraph.neighbors(node):
                     if neighbor != parent:
-                        matching[node] = neighbor
-                        matched_machines.add(neighbor)
-                        break
+                        if neighbor not in matched_machines:
+                            matching[node] = neighbor
+                            matched_machines.add(neighbor)
+                            break
 
             # Recursively visit children
             for neighbor in subgraph.neighbors(node):
@@ -282,14 +290,14 @@ class BipartiteGraph:
     def visualize_connected_subgraphs(self):
         plt.figure(figsize=(12, 12))  # Create a new figure and adjust the size
         pos = nx.spring_layout(self.graph)
-        colors = ['r', 'g', 'b', 'y', 'c', 'm', 'o', 'k']
+        colors = ['r', 'g', 'b', 'y', 'c', 'm', '#FF5733', '#D3D3D3']  # 'k' replaced by light gray '#D3D3D3'
 
         for idx, subgraph_nodes in enumerate(self.connected_components):
             subgraph = self.graph.subgraph(subgraph_nodes)
             nx.draw_networkx_nodes(subgraph, pos, nodelist=subgraph_nodes,
                                    node_color=colors[idx % len(colors)], node_size=500)
             nx.draw_networkx_edges(subgraph, pos, edgelist=subgraph.edges(), edge_color=colors[idx % len(colors)])
-            nx.draw_networkx_labels(subgraph, pos, labels={n: n for n in subgraph_nodes}, font_size=8)
+            nx.draw_networkx_labels(subgraph, pos, labels={n: n for n in subgraph_nodes}, font_size=8, font_color='k')
 
         plt.title("Connected Subgraphs of the Graph")
         plt.show()  # Show the figure

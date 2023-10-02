@@ -16,7 +16,7 @@ Step3: Create a linear problem LP(Pij, d⃗,t) where
 Step4: Create a decision_procedure LP(Pij, d) using the LP(Pij, d⃗,t) of the rounding theorem
         where d = d1 = d2 = ... = dm = t = d that returns solution if feasible and if not returns none.
 
-Step5: While lower < upper use decision_procedure and search the deadline that gives the minimum makespan
+Step5: While lower != upper use decision_procedure and search the deadline that gives the minimum makespan
         Return best_solution and the deadline for that solution.
 
 Step6: Round solution using Bipartite Graph
@@ -51,17 +51,10 @@ def two_relaxed_decision_procedure(P: list[list[int]], d: int):
     """
     A two-relaxed decision procedure LP(P, d) outputs either 'no' or 'almost'; more precisely, for the input (Pij, d):
 
-    If the output is 'almost,' then there exists a solution with makespan at most d, and we return a solution with
-    makespan at most p×d.
+    Consider the linear program LP(P, d, t) of the rounding theorem, with d1 = d2 = … dm = t = d.
+    If the output of the LP(P, d, t) is not None, then there is a feasible solution for the linear problem LP(P, d, t).
     If the output is 'no,' then there is no solution with makespan at most d.
-    It uses the LP(Pij, d⃗,t) from the RoundingTheorem where d1 = d2 = … dm = t = d
 
-    ***Note .The procedure uses linear programming to determine if such a feasible solution exists.
-    However, linear programming can produce solutions that are real numbers, thereby bypassing the integer constraints
-    necessary for the practical implementation of the program.
-    Consequently, even if the linear problem produces a solution with a makespan of d, it is not guaranteed that there
-    will be a corresponding integer solution.
-    This is why we return a solution with a makespan at most 2*d.
     :param P:
     :param d: d1 = d2 = … dm = t = d
     """
@@ -69,13 +62,13 @@ def two_relaxed_decision_procedure(P: list[list[int]], d: int):
     di = [d] * len(P)
     solution = LP(P, di, d)
     if solution is not None:
-        return LP(P, 2 * di, 2 * d)
+        return solution
     return None
 
 
 def binary_search_procedure(P: list[list[int]], t: int):
     """
-    While lower bound < upper bound run the LP(d,t) decision procedure in order to find the deadline and solution with
+    While lower_bound != upper_bound run the LP(d,t) decision procedure in order to find the deadline and solution with
     the minimum makespan
     :param P: 2D array m machines and n jobs.
     :param t:
@@ -87,7 +80,7 @@ def binary_search_procedure(P: list[list[int]], t: int):
 
     best_solution = None
     best_d = None
-    while lower_bound < upper_bound:
+    while lower_bound != upper_bound:
         d = (upper_bound + lower_bound) // 2
         solution = two_relaxed_decision_procedure(P, d)
         if solution is not None:
