@@ -67,10 +67,10 @@ def two_relaxed_decision_procedure(P: list[list[int]], d: int):
 
         # Round solution
         r_xij = round_lpSolution(solution[1], m, n)
-        r_makespan = calculate_makespan(P, r_xij)
-
-        if r_makespan <= 2*d:
-            return solution
+        if r_xij is not None:
+            r_makespan = calculate_makespan(P, r_xij)
+            if r_makespan <= 2*d:
+                return solution
     return None
 
 
@@ -105,15 +105,23 @@ def binary_search_procedure(P: list[list[int]], t: int):
 def round_lpSolution(lp_solution_xij: dict[tuple[int, int], LpVariable], m: int, n: int):
     """
     We round the solution of the LP(Pij, d⃗,t) with the use of Bipartite Graph
-    :param lp_solution_xij: linear solution
+    If the graph G we create doesn't have the property of a pseudoforest that means that there is a better solution.
+    We stop the rounding and we return None.
+    :param lp_solution_xij: Linear solution
     :param m: machines
     :param n: jobs
     :return: rounded solution
     """
-    bipartiteGraph = BipartiteGraph(lp_solution_xij, m, n)
-    for i, j in bipartiteGraph.matching:
-        lp_solution_xij[i, j].varValue = 1
-    for key in lp_solution_xij:
-        if lp_solution_xij[key].varValue != 1:
-            lp_solution_xij[key].varValue = 0
-    return lp_solution_xij
+    # Using LP xij, we create a bipartite graph G
+    bipartiteGraphG = BipartiteGraphG(lp_solution_xij, m, n)
+    if bipartiteGraphG.is_pseudoforest:
+        # Removing degree 1 jobs we get a graph G'
+        bipartiteGraphG2 = BipartiteGraphG2(bipartiteGraphG.graph)
+        # We round the solution according to the matching
+        for i, j in bipartiteGraphG2.matching:
+            lp_solution_xij[i, j].varValue = 1
+        for key in lp_solution_xij:
+            if lp_solution_xij[key].varValue != 1:
+                lp_solution_xij[key].varValue = 0
+        return lp_solution_xij
+    return None

@@ -5,9 +5,13 @@ Step1: Define Bipartite Graph G(x) = (M, J, E), where M = {1,...,m} and J = {1,.
 Step2: Find connected components
 
 Step3: We have to check that G(x) is a pseudoforest.
-        So we check that every connected component has this property.
-        Each connected component has no more edges than nodes.
-        
+So we check that every connected component has this property.
+Each connected component has no more edges than nodes.
+
+***Note
+If the graph is not a pseudoforest that means that there
+is a better solution because x is not an extreme point
+
 Step4: Each edge (i,j) with x_ij = 1.
         These jobs correspond to the job nodes of degree 1, so that by deleting all of
         these nodes we get a pseudoforest G'(x) with the additional property that each job node has degree at least 2.
@@ -22,7 +26,7 @@ For each component that is a tree, root the tree at any node, and match each job
 * no machine is matched with more than one job.
 
 For each component that contains a cycle, take alternate edges of the cycle in the matching.
-* Note that the cycle must be of even length.
+***Note that the cycle must be of even length.
 If the edges of the cycle are deleted, we get a collection of trees which we think of as rooted at the node that had
 been contained in the cycle.
 For each job node that is not already matched, pair it with one of its children.
@@ -32,10 +36,9 @@ Each remaining xij that has not been assigned is set to 0.
 """
 from pulp import *
 import networkx as nx
-import matplotlib.pyplot as plt
 
 
-class BipartiteGraph:
+class BipartiteGraphG:
     def __init__(self, lp_solution_xij: dict[tuple[int, int], LpVariable], num_machines: int, num_jobs: int):
         """
         Initializes the BipartiteGraph class with a given LP solution, number of machines, and number of jobs.
@@ -52,8 +55,6 @@ class BipartiteGraph:
         self.n = num_jobs
         self.connected_components = []
         self.is_pseudoforest = True
-        self.connected_subgraphs = []
-        self.matching = []
 
         # Add machine nodes with names like "m0", "m1", ...
         for machine_id in range(num_machines):
@@ -70,24 +71,9 @@ class BipartiteGraph:
 
         # Step 2
         self.find_connected_components()
-        #print("\nGraph G")
-        #self.print_graph_info()
-        #self.visualize_graph()
 
         # Step 3
         self.check_pseudoforest_property()
-
-        # step 4
-        self.remove_single_degree_jobs()
-        self.find_connected_components()
-        #self.visualize_graph()
-        #print("\nGraph G'")
-        #self.print_graph_info()
-
-        # step 5
-        self.find_connected_subgraphs()
-        # self.visualize_connected_subgraphs()
-        self.matching_process()
 
     """---------    Step 2  ------------"""
 
@@ -106,15 +92,31 @@ class BipartiteGraph:
         Prints an error message if the property is not satisfied.
         """
         if self.graph.number_of_edges() > self.graph.number_of_nodes():
-            print("Our Graph is not a pseudoforest. Number of edges > number of nodes")
             self.is_pseudoforest = False
         for component in self.connected_components:
             subgraph = self.graph.subgraph(component)
             if subgraph.number_of_edges() > subgraph.number_of_nodes():
-                print("A subgraph doesnt have pseudoforest property.")
-                self.print_subgraph_info()
                 self.is_pseudoforest = False
                 return
+
+
+class BipartiteGraphG2:
+    def __init__(self, graph: nx.Graph):
+        """
+        Initializes the BipartiteGraphG2 class with a given graph.
+        :param graph: NetworkX graph representing the bipartite graph.
+        """
+
+        #   Fields
+        self.graph = graph
+        self.matching = []
+
+        # step 4
+        self.remove_single_degree_jobs()
+        self.connected_components = list(nx.connected_components(self.graph))
+
+        # step 5
+        self.matching_process()
 
     """---------    Step 4  ------------"""
 
@@ -135,14 +137,6 @@ class BipartiteGraph:
         # Remove machine nodes with degree 0
         for machine in zero_degree_machines:
             self.graph.remove_node(machine)
-
-    def find_connected_subgraphs(self):
-        """
-        Finds and stores the connected subgraphs of the graph after removing single-degree jobs.
-        """
-        for component in self.connected_components:
-            subgraph = self.graph.subgraph(component)
-            self.connected_subgraphs.append(subgraph)
 
     """---------    Step 5  ------------"""
 
@@ -260,44 +254,3 @@ class BipartiteGraph:
 
     def get_job_nodes(self):
         return [node for node in self.graph.nodes if node.startswith("j")]
-
-    # Print   ------------------------------------
-    def print_graph_info(self):
-        if self.is_pseudoforest:
-            print("Pseudoforest Property applies. Graph is a pseudoforest")
-        print("Number of nodes:", len(self.graph.nodes))
-        print("Number of edges:", len(self.graph.edges))
-        # print("\nNodes in the graph:\n",self.graph.nodes)
-        # print("\nEdges in the graph:\n",self.graph.edges)
-        print("List size of different connected components:", len(self.connected_components), "\n")
-
-    def print_subgraph_info(self):
-        print("------------------ Subgraph Info ----------------")
-        for idx, subgraph in enumerate(self.connected_subgraphs, start=1):
-            print(f"Connected Subgraph {idx}: Nodes={subgraph}")
-            subgraph_edges = self.graph.subgraph(subgraph).edges
-            print("Edges:", subgraph_edges)
-
-    #  Visualize    ------------------------------------
-
-    def visualize_graph(self):
-        plt.figure()  # Create a new figure
-        pos = nx.bipartite_layout(self.graph, nodes=self.get_machine_nodes())
-        nx.draw(self.graph, pos, with_labels=True, node_color="skyblue", node_size=500, font_size=8)
-        plt.title("Bipartite Graph Representation")
-        plt.show()  # Show the figure
-
-    def visualize_connected_subgraphs(self):
-        plt.figure(figsize=(12, 12))  # Create a new figure and adjust the size
-        pos = nx.spring_layout(self.graph)
-        colors = ['r', 'g', 'b', 'y', 'c', 'm', '#FF5733', '#D3D3D3']  # 'k' replaced by light gray '#D3D3D3'
-
-        for idx, subgraph_nodes in enumerate(self.connected_components):
-            subgraph = self.graph.subgraph(subgraph_nodes)
-            nx.draw_networkx_nodes(subgraph, pos, nodelist=subgraph_nodes,
-                                   node_color=colors[idx % len(colors)], node_size=500)
-            nx.draw_networkx_edges(subgraph, pos, edgelist=subgraph.edges(), edge_color=colors[idx % len(colors)])
-            nx.draw_networkx_labels(subgraph, pos, labels={n: n for n in subgraph_nodes}, font_size=8, font_color='k')
-
-        plt.title("Connected Subgraphs of the Graph")
-        plt.show()  # Show the figure
