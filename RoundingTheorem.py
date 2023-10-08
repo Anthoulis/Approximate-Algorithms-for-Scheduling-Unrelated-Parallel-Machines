@@ -12,8 +12,7 @@ def LP(Pij: list[list[int]], di: list[int], t: int) -> (int, dict[tuple[int, int
     :return: The minimum makespan achieved, dictionary of the decision variables representing the job assignments
              to machines (i,j): LpVariable
     """
-    m = len(Pij)  # Number of machines
-    n = len(Pij[0])  # Number of jobs
+    m, n = len(Pij), len(Pij[0])  # Number of machines and number of jobs
 
     # Define the variables, objective function, and problem
     lp_prob = LpProblem("LP", LpMinimize)
@@ -73,8 +72,7 @@ def IP(Pij: list[list[int]], di: list[int], t: int) -> (int, dict[tuple[int, int
     :return: The minimum makespan achieved, dictionary of the decision variables representing the job assignments
              to machines (i,j): LpVariable
     """
-    m = len(Pij)  # Number of machines
-    n = len(Pij[0])  # Number of jobs
+    m, n = len(Pij), len(Pij[0])  # Number of machines and number of jobs
 
     # Define the variables, objective function, and problem
     ip_prob = LpProblem("IP", LpMinimize)
@@ -131,8 +129,7 @@ def calculate_makespan(P, xij: dict[tuple[int, int], LpVariable]):
     :param xij: dictionary of the decision variables representing the job assignments to machines.
     :return: makespan
     """
-    m = len(P)
-    n = len(P[0])
+    m, n = len(P), len(P[0])  # Number of machines and number of jobs
     completion_times = [0] * m  # Initialize completion times for each machine
     # Calculate completion times for each machine
     for i in range(m):
@@ -174,14 +171,9 @@ def print_decision_array(xij: dict[tuple[int, int], LpVariable], m, n):
 
 
 def print_schedule(Pij, solution: (int, dict[tuple[int, int]])) -> None:
-    """Prints the scheduling results."""
-    m = len(Pij)  # Number of machines
-    n = len(Pij[0])  # Number of jobs
-    makespan = solution[0]
+    m, n = len(Pij), len(Pij[0])  # Number of machines and number of jobs
     xij = solution[1]
-    print(f"Makespan = {makespan}")
     max_job_width = len(f"Job{n - 1}")  # Determine max width for job names
-
     for i in range(m):
         # List jobs assigned to each machine
         assigned_jobs = [f"Job{j}".ljust(max_job_width) for j in range(n) if (i, j) in xij if xij[(i, j)].varValue == 1]

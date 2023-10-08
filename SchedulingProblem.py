@@ -1,55 +1,42 @@
-from pulp import LpVariable
+from BipartiteGraph import visualize_graph
+from RoundingTheorem import print_schedule
 
 
 class SchedulingProblem:
-    def __init__(self, P: list[list[int]]):
-        """Constructor for the SchedulingProblem class."""
-        self.P = P  # 2D array representing processing time
-        self.m = len(P)  # Number of machines
-        self.n = len(P[0]) if P else 0  # Number of jobs
-        self.xij = [[0 for _ in range(self.n)] for _ in range(self.m)]  # Decision variable matrix initialized to zeros
-        self.makespan = 0  # Initialize makespan to zero
-
-    def update_xij(self, lp_xij: dict[tuple[int, int], LpVariable]) -> None:
-        """
-        Updates the decision variable matrix xij based on LP solutions.
-
-        :param lp_xij: Dictionary of LpVariables from the LP solution
-        """
-        if lp_xij is not None:
-            for i in range(self.m):
-                for j in range(self.n):
-                    if (i, j) in lp_xij:
-                        self.xij[i][j] = lp_xij[(i, j)].varValue
-
-    def calculate_makespan(self) -> int:
-        """
-        Calculates the makespan based on the Pij matrix and xij decision variables.
-
-        :return: The calculated makespan.
-        """
-        # Initialize machine completion times to zeros
-        completion_times = [0] * self.m
-
-        # Calculate completion times for each machine
-        for i in range(self.m):
-            for j in range(self.n):
-                completion_times[i] += self.xij[i][j] * self.P[i][j]
-
-        # Update and return makespan
-        self.makespan = max(completion_times)
-        return self.makespan
+    """
+    A simple class for organizing our data, for printing and visualization
+    """
+    def __init__(self, P: list[list[int]], lp_solution: (float, dict[tuple[int, int]]), deadline,
+                 rounded_solution: (int, dict[tuple[int, int]]),
+                 graphG, graphG2):
+        self.P = P  # 2D array representing processing time.
+        self.m = len(P)  # Number of machines.
+        self.n = len(P[0]) if P else 0  # Number of jobs.
+        self.t = 0  # Greedy Schedule.
+        self.lp_makespan = lp_solution[0]  # Linear Programming Makespan.
+        self.lp_xij = lp_solution[1]  # Linear Programming decision variables.
+        self.d = deadline  # Deadline d we achieved using Binary Search Procedure.
+        self.makespan = rounded_solution[0]  # The Makespan of our Approximate Solution.
+        self.xij = rounded_solution[1]  # The decision variables of our Approximate Schedule.
+        self.bipartite_graphG = graphG  # Graph G created using LP decision variables.
+        self.bipartite_graphG2 = graphG2  # Graph G' created form Graph G removing rank 1 job nodes.
 
     def print_info(self) -> None:
-        """Prints basic scheduling info."""
         print(f'Pij: {self.m} machines x {self.n} jobs')
+        print("Using Greedy Algorithm, Greedy makespan: t = ", self.t)
+        print("Using Binary Search Procedure the deadline d that results in the best solution for our program: d = ",
+              self.d)
+        print("The Linear Programming LP(Pij,d⃗,t) with the deadline d creates a non-integer schedule with makespan: "
+              "LP makespan = ", self.lp_makespan)
+        print("This the final result. An approximate solution using Linear Programming,Bipartite Graph, 2-Relaxed "
+              "Decision and Binary Search Procedure")
+        print("Makespan: ", self.makespan)
 
     def print_schedule(self) -> None:
-        """Prints the scheduling results."""
-        print(f"Makespan = {self.makespan}")
-        max_job_width = len(f"Job{self.n - 1}")  # Determine max width for job names
+        print_schedule(self.P, (self.makespan, self.xij))
 
-        for i in range(self.m):
-            # List jobs assigned to each machine
-            assigned_jobs = [f"Job{j}".ljust(max_job_width) for j in range(self.n) if self.xij[i][j] == 1]
-            print(f"Machine {i}: [ {', '.join(assigned_jobs)} ]")
+    def visualize_graphG(self):
+        visualize_graph(self.bipartite_graphG)
+
+    def visualize_graphG2(self):
+        visualize_graph(self.bipartite_graphG2)

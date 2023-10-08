@@ -34,6 +34,8 @@ For each job node that is not already matched, pair it with one of its children.
 If (i, j) is in the matching, set xij = 1.
 Each remaining xij that has not been assigned is set to 0.
 """
+from itertools import cycle
+from matplotlib import pyplot as plt
 from pulp import *
 import networkx as nx
 
@@ -46,7 +48,6 @@ class BipartiteGraphG:
         :param num_machines: Number of machines in the graph.
         :param num_jobs: Number of jobs in the graph.
         """
-
         # Step 1
         #   Fields
         self.graph = nx.Graph()  # Create an empty bipartite graph using NetworkX
@@ -108,7 +109,7 @@ class BipartiteGraphG2:
         """
 
         #   Fields
-        self.graph = graph
+        self.graph = graph.copy()
         self.matching = []
 
         # step 4
@@ -125,14 +126,14 @@ class BipartiteGraphG2:
         Removes job nodes with degree 1 from the graph.
         """
         # Find job nodes with degree 1
-        single_degree_jobs = [node for node in self.get_job_nodes() if self.graph.degree(node) == 1]
+        single_degree_jobs = [node for node in get_job_nodes(self.graph) if self.graph.degree(node) == 1]
 
         # Remove job nodes with degree 1 along with their edges
         for job in single_degree_jobs:
             self.graph.remove_node(job)
 
         # Find machine nodes with degree 0
-        zero_degree_machines = [node for node in self.get_machine_nodes() if self.graph.degree(node) == 0]
+        zero_degree_machines = [node for node in get_machine_nodes(self.graph) if self.graph.degree(node) == 0]
 
         # Remove machine nodes with degree 0
         for machine in zero_degree_machines:
@@ -238,19 +239,51 @@ class BipartiteGraphG2:
         """
         Main method to process the matching according to the described steps.
         """
-
         for component in self.connected_components:
             subgraph = self.graph.subgraph(component)
-            # if number of edges < number of nodes
-            if nx.is_tree(subgraph):
+            if nx.is_tree(subgraph):  # if number of edges < number of nodes
                 self.match_tree_component(subgraph)
-            # number of edges = number of nodes
-            else:
+            else:  # number of edges = number of nodes
                 self.match_cycle_component(subgraph)
 
-    # %-------------------------- Helpful Functions for printing and visualization    --------------------------------%
-    def get_machine_nodes(self):
-        return [node for node in self.graph.nodes if node.startswith("m")]
 
-    def get_job_nodes(self):
-        return [node for node in self.graph.nodes if node.startswith("j")]
+# %-------------------------- Helpful Functions for printing and visualization    --------------------------------%
+def get_machine_nodes(graph):
+    return [node for node in graph.nodes if node.startswith("m")]
+
+
+def get_job_nodes(graph):
+    return [node for node in graph.nodes if node.startswith("j")]
+
+
+# Print   -----------------------------------------
+def print_graph_info(bipartite_graph):
+    print("Number of nodes:", len(bipartite_graph.graph.nodes))
+    print("Number of edges:", len(bipartite_graph.graph.edges))
+    print("List size of different connected components:", len(bipartite_graph.connected_components), "\n")
+
+
+# Visualize    ------------------------------------
+def visualize_graph(bipartite_graph):
+    plt.figure()  # Create a new figure
+    pos = nx.bipartite_layout(bipartite_graph.graph, nodes=get_machine_nodes(bipartite_graph.graph))
+    node_size = 800
+    nx.draw(bipartite_graph.graph, pos, with_labels=True, node_color="skyblue", node_size=node_size, font_size=8)
+    plt.title("Bipartite Graph Representation")
+    plt.show()  # Show the figure
+
+
+def visualize_graph_components(bipartite_graph):
+    """
+    Visualizes Bipartite Graph using NetworkX.
+    :param bipartite_graph: BipartiteGraph instance.
+    """
+    colors = cycle(["skyblue", "limegreen", "tomato", "gold", "orchid", "deepskyblue"])
+    pos = nx.spring_layout(bipartite_graph.graph)
+    node_size = 800
+    # Draw the bipartite graph
+    for i, component in enumerate(bipartite_graph.connected_components):
+        subgraph = bipartite_graph.graph.subgraph(component)
+        nx.draw(subgraph, pos, with_labels=False, node_color=next(colors), node_size=node_size)
+        nx.draw_networkx_labels(subgraph, pos, labels={node: f"{node}" for node in subgraph.nodes})
+    plt.show()
