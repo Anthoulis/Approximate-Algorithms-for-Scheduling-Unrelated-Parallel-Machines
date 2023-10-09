@@ -224,13 +224,14 @@ class BipartiteGraphG2:
             print("Error: The component must contain one even-length cycle.")
             return False
 
+        copy = subgraph.copy()
         # If there is a cycle, remove one arbitrary edge from it.
         if len(cycles[0]) >= 2:
             u, v = cycles[0][0], cycles[0][1]
-            subgraph.remove_edge(u, v)
+            copy.remove_edge(u, v)
 
         # Now the subgraph is a tree
-        self.match_tree_component(subgraph)
+        self.match_tree_component(copy)
 
         return is_successful
 
