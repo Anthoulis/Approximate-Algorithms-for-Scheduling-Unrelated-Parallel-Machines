@@ -47,9 +47,9 @@ def run_main(filename):
         sch_problem.print_schedule()
         print("\nGraph G"), print_graph_info(sch_problem.bipartite_graphG)
         print("\nGraph G'"), print_graph_info(sch_problem.bipartite_graphG2)
-        sch_problem.visualize_graphG()
-        sch_problem.visualize_graphG2()
-        visualize_graph_components(sch_problem.bipartite_graphG2)
+        #sch_problem.visualize_graphG()
+        #sch_problem.visualize_graphG2()
+        #visualize_graph_components(sch_problem.bipartite_graphG2)
     else:
         print("No feasible solution found during Binary Search Procedure")
         return
@@ -65,4 +65,4 @@ def run_main(filename):
 
 # Choose which data to run
 if __name__ == "__main__":
-    run_main('data100x30.csv')
+    run_main('data30x100.csv')

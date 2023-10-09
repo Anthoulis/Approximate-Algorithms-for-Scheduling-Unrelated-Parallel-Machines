@@ -1,6 +1,5 @@
-"""
-Step1: Define Bipartite Graph G(x) = (M, J, E), where M = {1,...,m} and J = {1,...,n} correspond to the sets of
-        machines and jobs, respectively, and E={(i, j) | x_ij>0}
+"""Step1: Define Bipartite Graph G(x) = (M, J, E), where M = {1,...,m} and J = {1,...,n} correspond to the sets
+     of machines and jobs, respectively, and E={(i, j) | x_ij>0}
 
 Step2: Find connected components
 
@@ -16,7 +15,7 @@ Step4: Each edge (i,j) with x_ij = 1.
         These jobs correspond to the job nodes of degree 1, so that by deleting all of
         these nodes we get a pseudoforest G'(x) with the additional property that each job node has degree at least 2.
 
-Step5: This is the last step where the lp_solution_xij becomes the solution for our project through this procedure:
+Step5: This is the last step where the lp_solution_xij is converted to an integer solution through this procedure:
 
 We show that G'(x) has a matching that covers all the job nodes.
 
@@ -51,7 +50,7 @@ class BipartiteGraphG:
         # Step 1
         #   Fields
         self.graph = nx.Graph()  # Create an empty bipartite graph using NetworkX
-        self.lp_solution_xij = lp_solution_xij
+        self.lp_solution_xij = lp_solution_xij.copy()
         self.m = num_machines
         self.n = num_jobs
         self.connected_components = []

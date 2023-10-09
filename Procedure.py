@@ -1,25 +1,23 @@
-"""
-Step1: Calculate t, which is the greedy makespan
+"""Step1 Linear Problem LP(P, d ⃗,t): In the first step, we formulate a linear problem (LP) that represents the
+scheduling problem. Our objective is to ensure the correct ordering of tasks on machines and their compliance with
+deadlines.
 
-Step2: Set upper u and lower l bound using t, upper_bound = t and lower_bound = t//m where m is number of machines
+Step2 Rounding Methodology: We employ bipartite graphs to round the solution obtained from step 1 of the linear
+problem to an integer solution. Initially, we construct a graph G according to the LP solution. If it is a pseudoforest,
+we proceed; otherwise, this implies a better solution exists. Subsequently, a graph G' is derived from G by removing
+job nodes with rank=1. Then, we perform matching and convert the non-integer solution.
 
-Step3: Create a linear problem LP(Pij, d⃗,t) where
-        Pij = 2D array m machines and n jobs.
-        Pij the process time of machine i to execute a job j.
-        d⃗ = (d1,...,dm) ∈ Z. deadline
-        t ∈ Z
-        Constrains:
-            i ∈ Mj(t)_Sum (xij = 1) for j=1,...,n
-            j ∈ Ji(t)_Sum (pij*xij <= di) for i=1,...,m
-            xij>=0 for j ∈ Ji(t), i=1,...,m
+Step3 2-Relaxed Decision Process LP(P, d): Utilizes LP(P, d ⃗,t) with d_1=d_2=⋯=ⅆ_m and the Rounding Methodology to
+round the non-integer solution. It produces a solution if feasible, returning "almost" as observed; otherwise,
+it returns "no."
 
-Step4: Create a decision_procedure LP(Pij, d) using the LP(Pij, d⃗,t) of the rounding theorem
-        where d = d1 = d2 = ... = dm = t = d that returns 'no' or 'almost'.
+Step4 Upper and Lower Limit Computation: Using the Greedy algorithm, we calculate a greedy schedule, and the makespan
+of this greedy schedule constitutes the upper limit t. We set the lower limit t/m, where m is the number of machines.
 
-Step5: Use binary search procedure.
-        While lower != upper, search the deadline that gives the minimum makespan while saving the best solution found
-        Return best_solution and the deadline for that solution.
-"""
+Step5 Binary Search: The final step is to execute the binary search process. Until the lower limit equals the upper
+limit, we set d=⌊1/2 (u+l)⌋. If the 2-Relaxed Decision Process LP(P, d) returns a solution, then the upper limit
+becomes d; otherwise, the lower limit becomes d + 1. Simultaneously, we store the solution with the smallest
+makespan."""
 import numpy as np
 from RoundingTheorem import *
 from BipartiteGraph import *
@@ -52,16 +50,15 @@ def round_lpSolution(lp_xij: dict[tuple[int, int], LpVariable], m: int, n: int):
     # Using LP xij, we create a bipartite graph G
     bipartiteGraphG = BipartiteGraphG(lp_xij, m, n)
     if bipartiteGraphG.is_pseudoforest:
-
-        # Removing degree 1 jobs we get a graph G'
-        bipartiteGraphG2 = BipartiteGraphG2(bipartiteGraphG.graph)
+        bipartiteGraphG2 = BipartiteGraphG2(bipartiteGraphG.graph)  # Removing degree 1 jobs we get a graph G'
         # We round the solution according to the matching
+        rounded_xij = lp_xij.copy()
         for i, j in bipartiteGraphG2.matching:
-            lp_xij[i, j].varValue = 1
+            rounded_xij[i, j].varValue = 1
         for key in lp_xij:
             if lp_xij[key].varValue != 1:
-                lp_xij[key].varValue = 0
-        return lp_xij, bipartiteGraphG, bipartiteGraphG2
+                rounded_xij[key].varValue = 0
+        return rounded_xij, bipartiteGraphG, bipartiteGraphG2
     return None
 
 
@@ -105,15 +102,13 @@ def binary_search_procedure(P: list[list[int]]):
     """
     t = greedy_schedule(P)
     m, upper_bound, lower_bound = len(P), t, t // len(P)
-    best_solution, best_d = None, None
-
-    best_makespan = None
+    best_solution = None
 
     while lower_bound != upper_bound:
         d = (upper_bound + lower_bound) // 2
         if result := two_relaxed_decision_procedure(P, d):  # If it is a yes instance
             upper_bound = d
-            if best_makespan is None or best_makespan < result.makespan:
+            if best_solution is None or best_solution.makespan < result.makespan:
                 best_solution = result
         else:
             lower_bound = d + 1

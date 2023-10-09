@@ -1,5 +1,5 @@
 from BipartiteGraph import visualize_graph
-from RoundingTheorem import print_schedule
+from RoundingTheorem import print_schedule, LP
 
 
 class SchedulingProblem:
@@ -9,15 +9,15 @@ class SchedulingProblem:
     def __init__(self, P: list[list[int]], lp_solution: (float, dict[tuple[int, int]]), deadline,
                  rounded_solution: (int, dict[tuple[int, int]]),
                  graphG, graphG2):
-        self.P = P  # 2D array representing processing time.
+        self.P = P.copy()  # 2D array representing processing time.
         self.m = len(P)  # Number of machines.
         self.n = len(P[0]) if P else 0  # Number of jobs.
         self.t = 0  # Greedy Schedule.
         self.lp_makespan = lp_solution[0]  # Linear Programming Makespan.
-        self.lp_xij = lp_solution[1]  # Linear Programming decision variables.
+        self.lp_xij = dict(lp_solution[1])  # Linear Programming decision variables.
         self.d = deadline  # Deadline d we achieved using Binary Search Procedure.
         self.makespan = rounded_solution[0]  # The Makespan of our Approximate Solution.
-        self.xij = rounded_solution[1]  # The decision variables of our Approximate Schedule.
+        self.xij = rounded_solution[1].copy()  # The decision variables of our Approximate Schedule.
         self.bipartite_graphG = graphG  # Graph G created using LP decision variables.
         self.bipartite_graphG2 = graphG2  # Graph G' created form Graph G removing rank 1 job nodes.
 
