@@ -83,5 +83,5 @@ def print_csv_file(filename):
 # Generate File Data
 # generate_filedata("filename", m, n)
 if __name__ == "__main__":
-    generate_filedata("data300x1000.csv", 300, 1000)
+    generate_filedata("300x1000.csv", 300, 1000)
 

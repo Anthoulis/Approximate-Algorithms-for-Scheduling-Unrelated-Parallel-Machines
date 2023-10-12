@@ -44,12 +44,12 @@ def run_main(filename):
     elapsed_time = end_time - start_time
     if sch_problem is not None:
         sch_problem.print_info()
-        #sch_problem.print_schedule()
-        #print("\nGraph G"), print_graph_info(sch_problem.bipartite_graphG)
-        #print("\nGraph G'"), print_graph_info(sch_problem.bipartite_graphG2)
-        #sch_problem.visualize_graphG()
-        #sch_problem.visualize_graphG2()
-        #visualize_graph_components(sch_problem.bipartite_graphG2)
+        sch_problem.print_schedule()
+        print("\nGraph G"), print_graph_info(sch_problem.bipartite_graphG)
+        print("\nGraph G'"), print_graph_info(sch_problem.bipartite_graphG2)
+        sch_problem.visualize_graphG()
+        sch_problem.visualize_graphG2()
+        visualize_graph_components(sch_problem.bipartite_graphG2)
     else:
         print("No feasible solution found during Binary Search Procedure")
         return
@@ -65,4 +65,4 @@ def run_main(filename):
 
 # Choose which data to run
 if __name__ == "__main__":
-    run_main('data300x1000.csv')
+    run_main('30x100.csv')
