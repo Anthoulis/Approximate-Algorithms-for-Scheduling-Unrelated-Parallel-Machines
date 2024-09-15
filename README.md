@@ -31,37 +31,6 @@ The problem tackled in this project is scheduling a set of independent tasks on 
    cd Approximate-Algorithms-for-Scheduling-Unrelated-Parallel-Machines
    pip install -r requirements.txt
 
-# Approximate Algorithms for Scheduling Unrelated Parallel Machines
-
-## Description
-This project implements approximation algorithms for solving the problem of scheduling unrelated parallel machines, which is known to be NP-hard. The goal is to minimize the overall makespan by efficiently allocating tasks to machines, where each task has a different processing time depending on the machine that processes it. The algorithms employed here are inspired by influential research in the field of scheduling theory and optimization, providing efficient task allocations in scenarios with varying machine capabilities.
-
-This project is based on my thesis, **"Approximation Algorithms for Scheduling Unrelated Parallel Machines"**, which dives deeper into algorithmic approaches for this problem. You can access the full thesis [here](https://ikee.lib.auth.gr/record/351786/?ln=en).
-
-## Problem Statement
-The problem tackled in this project is scheduling a set of independent tasks on multiple machines, where each machine has different processing times for each task. The objective is to assign tasks to machines in a way that minimizes the makespan (the time at which the last task finishes).
-
-## Features
-- Implements several state-of-the-art approximation algorithms for unrelated machine scheduling.
-- Includes tools for visualizing scheduling results with Gantt charts.
-- Provides evaluations of algorithm performance based on makespan minimization and computational complexity.
-
-## Technologies
-- **Python** for the core implementation.
-- **PuLP** for linear programming formulations.
-- **NetworkX** for graph-based task scheduling models.
-- **Matplotlib** for visualizing the task allocation.
-- **NumPy** for mathematical operations.
-
-## Installation
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/Anthoulis/Approximate-Algorithms-for-Scheduling-Unrelated-Parallel-Machines.git
-2. Navigate to the directory and install the required dependencies:
-   ```bash
-   cd Approximate-Algorithms-for-Scheduling-Unrelated-Parallel-Machines
-   pip install -r requirements.txt
-
 ## Prerequisites
 - Python 3.x (Make sure Python is installed on your system)
 - Pip (Python package manager)
