@@ -1,4 +1,4 @@
-# Approximate Algorithms for Scheduling Unrelated Parallel Machines
+# Approximation Algorithms for Unrelated Machines Scheduling
 
 ## Description
 This project explores the NP-hard problem of scheduling unrelated parallel machines, a significant challenge in optimizing resource utilization. Specifically, it focuses on efficiently assigning independent tasks to different machines to minimize the overall completion time (makespan), with each task having a unique processing time depending on the machine executing it. Due to the NP-hardness of the problem, finding practical solutions relies on approximation algorithms.
